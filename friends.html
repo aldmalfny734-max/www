@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>الأصدقاء</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #1e3a5f;
+            --primary-light: #2c5282;
+            --primary-dark: #152a45;
+            --secondary: #c9a227;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --surface-alt: #f1f5f9;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --error: #dc2626;
+            --success: #059669;
+            --warning: #d97706;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+
+        [data-theme="dark"] {
+            --primary: #3b82f6;
+            --background: #0f172a;
+            --surface: #1e293b;
+            --surface-alt: #334155;
+            --text: #f8fafc;
+            --text-light: #cbd5e1;
+            --border: #334155;
+        }
+
+        body {
+            background-color: var(--background);
+            min-height: 100vh;
+            color: var(--text);
+            line-height: 1.6;
+            transition: background-color 0.3s ease;
+            padding-bottom: 80px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 16px 20px;
+            box-shadow: var(--shadow-lg);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.1;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1;
+            position: relative;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .header-title {
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Stats Cards */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card.active {
+            border-color: var(--primary);
+            background: rgba(30, 58, 95, 0.1);
+        }
+
+        [data-theme="dark"] .stat-card.active {
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .stat-count {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Friends List */
+        .friends-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .friend-item {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .friend-item:hover {
+            transform: translateX(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-light);
+        }
+
+        .friend-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid var(--border);
+            flex-shrink: 0;
+            background: var(--surface-alt);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .friend-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .friend-avatar-placeholder {
+            font-size: 24px;
+        }
+
+        .friend-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .friend-name {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .friend-bio {
+            font-size: 13px;
+            color: var(--text-light);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .friend-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .action-btn.message {
+            background: var(--primary);
+            color: white;
+        }
+
+        .action-btn.message:hover {
+            background: var(--primary-light);
+        }
+
+        .action-btn.block {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--error);
+        }
+
+        .action-btn.block:hover {
+            background: var(--error);
+            color: white;
+        }
+
+        .action-btn.unblock {
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--success);
+        }
+
+        .action-btn.unblock:hover {
+            background: var(--success);
+            color: white;
+        }
+
+        .action-btn.remove {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--error);
+        }
+
+        .action-btn.remove:hover {
+            background: var(--error);
+            color: white;
+        }
+
+        .action-btn.accept {
+            background: var(--success);
+            color: white;
+        }
+
+        .action-btn.accept:hover {
+            background: #047857;
+        }
+
+        .action-btn.decline {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--error);
+        }
+
+        .action-btn.decline:hover {
+            background: var(--error);
+            color: white;
+        }
+
+        /* Pending Request */
+        .pending-item {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .pending-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .pending-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        .pending-btn.accept {
+            background: var(--success);
+            color: white;
+        }
+
+        .pending-btn.accept:hover {
+            background: #047857;
+        }
+
+        .pending-btn.decline {
+            background: var(--surface-alt);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .pending-btn.decline:hover {
+            background: var(--error);
+            color: white;
+            border-color: var(--error);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--surface-alt);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin: 0 auto 20px;
+        }
+
+        .empty-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        /* Search Box */
+        .search-container {
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 16px 14px 48px;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 18px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--success);
+            color: white;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            box-shadow: var(--shadow-xl);
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Footer Navigation */
+        .footer-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 12px 20px 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 500;
+            transition: all 0.3s;
+            padding: 4px 12px;
+            border-radius: 12px;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item.active {
+            background: rgba(30, 58, 95, 0.1);
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .main-content {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="home.html" class="back-btn">→</a>
+            <span class="header-title">الأصدقاء</span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Stats Cards -->
+        <div class="stats-row">
+            <div class="stat-card active" onclick="switchTab('followers', this)">
+                <div class="stat-icon">👥</div>
+                <div class="stat-label">المتابعين</div>
+                <div class="stat-count" id="followersCount">12</div>
+            </div>
+            <div class="stat-card" onclick="switchTab('following', this)">
+                <div class="stat-icon">👤</div>
+                <div class="stat-label">اتابعهم</div>
+                <div class="stat-count" id="followingCount">8</div>
+            </div>
+            <div class="stat-card" onclick="switchTab('blocked', this)">
+                <div class="stat-icon">🚫</div>
+                <div class="stat-label">المحظورين</div>
+                <div class="stat-count" id="blockedCount">2</div>
+            </div>
+            <div class="stat-card" onclick="switchTab('pending', this)">
+                <div class="stat-icon">⏳</div>
+                <div class="stat-label">الطلبات</div>
+                <div class="stat-count" id="pendingCount">5</div>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" class="search-input" id="searchInput" placeholder="البحث في الأصدقاء..." oninput="searchFriends()">
+                <span class="search-icon">🔍</span>
+            </div>
+        </div>
+
+        <!-- Followers Section -->
+        <div class="tab-content active" id="tab-followers">
+            <div class="friends-list" id="followersList">
+                <!-- سيتم إنشاؤها بواسطة JavaScript -->
+            </div>
+        </div>
+
+        <!-- Following Section -->
+        <div class="tab-content" id="tab-following">
+            <div class="friends-list" id="followingList">
+                <!-- سيتم إنشاؤها بواسطة JavaScript -->
+            </div>
+        </div>
+
+        <!-- Blocked Section -->
+        <div class="tab-content" id="tab-blocked">
+            <div class="friends-list" id="blockedList">
+                <!-- سيتم إنشاؤها بواسطة JavaScript -->
+            </div>
+        </div>
+
+        <!-- Pending Section -->
+        <div class="tab-content" id="tab-pending">
+            <div class="friends-list" id="pendingList">
+                <!-- سيتم إنشاؤها بواسطة JavaScript -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer Navigation -->
+    <nav class="footer-nav">
+        <a href="home.html" class="nav-item">
+            <span class="nav-icon">🏠</span>
+            <span>الرئيسية</span>
+        </a>
+        <a href="#" class="nav-item" onclick="showToast('المواقع')">
+            <span class="nav-icon">🌐</span>
+            <span>المواقع</span>
+        </a>
+        <a href="friends.html" class="nav-item active">
+            <span class="nav-icon">👥</span>
+            <span>الأصدقاء</span>
+        </a>
+        <a href="chat.html" class="nav-item">
+            <span class="nav-icon">💬</span>
+            <span>الدردشة</span>
+        </a>
+        <a href="settings.html" class="nav-item">
+            <span class="nav-icon">⚙️</span>
+            <span>الإعدادات</span>
+        </a>
+    </nav>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <span>✓</span>
+        <span id="toastMessage">تم بنجاح!</span>
+    </div>
+
+    <script>
+        // Data
+        const followers = [
+            { id: 1, name: 'الشيخ أحمد', bio: 'طالب علم', avatar: 'https://i.pravatar.cc/150?img=11' },
+            { id: 2, name: 'محمد علي', bio: 'محب للعلم', avatar: 'https://i.pravatar.cc/150?img=12' },
+            { id: 3, name: 'عبدالله محمد', bio: 'طالب جامعي', avatar: 'https://i.pravatar.cc/150?img=13' },
+            { id: 4, name: 'خالد عمر', bio: 'مهندس', avatar: 'https://i.pravatar.cc/150?img=14' },
+            { id: 5, name: 'أحمد صالح', bio: 'تاجر', avatar: 'https://i.pravatar.cc/150?img=15' },
+            { id: 6, name: 'سعيد الغامدي', bio: 'معلم', avatar: 'https://i.pravatar.cc/150?img=16' },
+            { id: 7, name: 'ياسر الحربي', bio: 'طبيب', avatar: 'https://i.pravatar.cc/150?img=17' },
+            { id: 8, name: 'عمر الفارسي', bio: 'محامٍ', avatar: 'https://i.pravatar.cc/150?img=18' },
+            { id: 9, name: 'سالم المطيري', bio: 'مستشار', avatar: 'https://i.pravatar.cc/150?img=19' },
+            { id: 10, name: 'فهد العنزي', bio: 'رجل أعمال', avatar: 'https://i.pravatar.cc/150?img=20' },
+            { id: 11, name: 'تركي الشمري', bio: 'كاتب', avatar: 'https://i.pravatar.cc/150?img=21' },
+            { id: 12, name: 'ناصر العتيبي', bio: 'مؤلف', avatar: 'https://i.pravatar.cc/150?img=22' }
+        ];
+
+        const following = [
+            { id: 101, name: 'الشيخ محمد العريفي', bio: 'داعية إسلامي', avatar: 'https://i.pravatar.cc/150?img=11' },
+            { id: 102, name: 'الشيخ صالح المغامسي', bio: 'إمام وخطيب', avatar: 'https://i.pravatar.cc/150?img=13' },
+            { id: 103, name: 'الدكتور عزام', bio: 'أكاديمي', avatar: 'https://i.pravatar.cc/150?img=15' },
+            { id: 104, name: 'الشيخ الشريم', bio: 'قارئ قرآن', avatar: 'https://i.pravatar.cc/150?img=17' },
+            { id: 105, name: 'الشيخ السديس', bio: 'خطيب ومفسر', avatar: 'https://i.pravatar.cc/150?img=19' },
+            { id: 106, name: 'أحمد الط示范区', bio: 'مستشار قانوني', avatar: 'https://i.pravatar.cc/150?img=21' },
+            { id: 107, name: 'محمد الحكمي', bio: 'باحث', avatar: 'https://i.pravatar.cc/150?img=23' },
+            { id: 108, name: 'علي الزهراني', bio: 'داعية', avatar: 'https://i.pravatar.cc/150?img=25' }
+        ];
+
+        const blocked = [
+            { id: 201, name: 'مستخدم 1', bio: 'محظور', avatar: 'https://i.pravatar.cc/150?img=30' },
+            { id: 202, name: 'مستخدم 2', bio: 'محظور', avatar: 'https://i.pravatar.cc/150?img=31' }
+        ];
+
+        const pending = [
+            { id: 301, name: 'أحمد جديد', bio: 'يريد متابعتك', avatar: 'https://i.pravatar.cc/150?img=40' },
+            { id: 302, name: 'محمد طلب', bio: 'يريد متابعتك', avatar: 'https://i.pravatar.cc/150?img=41' },
+            { id: 303, name: 'علي يريد', bio: 'يريد متابعتك', avatar: 'https://i.pravatar.cc/150?img=42' },
+            { id: 304, name: 'سعيد يتابع', bio: 'يريد متابعتك', avatar: 'https://i.pravatar.cc/150?img=43' },
+            { id: 305, name: 'فهد等待', bio: 'يريد متابعتك', avatar: 'https://i.pravatar.cc/150?img=44' }
+        ];
+
+        // Render Functions
+        function renderFollowers() {
+            const container = document.getElementById('followersList');
+            if (followers.length === 0) {
+                container.innerHTML = getEmptyState('لا يوجد متابعين');
+                return;
+            }
+            
+            let html = '';
+            for (let i = 0; i < followers.length; i++) {
+                const friend = followers[i];
+                html += renderFriendItem(friend, 'followers');
+            }
+            container.innerHTML = html;
+        }
+
+        function renderFollowing() {
+            const container = document.getElementById('followingList');
+            if (following.length === 0) {
+                container.innerHTML = getEmptyState('لا تتبع أحداً');
+                return;
+            }
+            
+            let html = '';
+            for (let i = 0; i < following.length; i++) {
+                const friend = following[i];
+                html += renderFriendItem(friend, 'following');
+            }
+            container.innerHTML = html;
+        }
+
+        function renderBlocked() {
+            const container = document.getElementById('blockedList');
+            if (blocked.length === 0) {
+                container.innerHTML = getEmptyState('لا يوجد محظورين');
+                return;
+            }
+            
+            let html = '';
+            for (let i = 0; i < blocked.length; i++) {
+                const friend = blocked[i];
+                html += '<div class="friend-item">' +
+                    '<div class="friend-avatar">' +
+                    '<img src="' + friend.avatar + '" alt="">' +
+                    '</div>' +
+                    '<div class="friend-info">' +
+                    '<div class="friend-name">' + friend.name + '</div>' +
+                    '<div class="friend-bio">' + friend.bio + '</div>' +
+                    '</div>' +
+                    '<div class="friend-actions">' +
+                    '<button class="action-btn unblock" onclick="unblockUser(' + friend.id + ')" title="إلغاء الحظر">🔓</button>' +
+                    '</div>' +
+                    '</div>';
+            }
+            container.innerHTML = html;
+        }
+
+        function renderPending() {
+            const container = document.getElementById('pendingList');
+            if (pending.length === 0) {
+                container.innerHTML = getEmptyState('لا توجد طلبات');
+                return;
+            }
+            
+            let html = '';
+            for (let i = 0; i < pending.length; i++) {
+                const friend = pending[i];
+                html += '<div class="friend-item">' +
+                    '<div class="friend-avatar">' +
+                    '<img src="' + friend.avatar + '" alt="">' +
+                    '</div>' +
+                    '<div class="friend-info">' +
+                    '<div class="friend-name">' + friend.name + '</div>' +
+                    '<div class="friend-bio">' + friend.bio + '</div>' +
+                    '</div>' +
+                    '<div class="pending-actions">' +
+                    '<button class="pending-btn accept" onclick="acceptRequest(' + friend.id + ')">✓ قبول</button>' +
+                    '<button class="pending-btn decline" onclick="declineRequest(' + friend.id + ')">✕ رفض</button>' +
+                    '</div>' +
+                    '</div>';
+            }
+            container.innerHTML = html;
+        }
+
+        function renderFriendItem(friend, type) {
+            return '<div class="friend-item">' +
+                '<div class="friend-avatar">' +
+                '<img src="' + friend.avatar + '" alt="">' +
+                '</div>' +
+                '<div class="friend-info">' +
+                '<div class="friend-name">' + friend.name + '</div>' +
+                '<div class="friend-bio">' + friend.bio + '</div>' +
+                '</div>' +
+                '<div class="friend-actions">' +
+                '<button class="action-btn message" onclick="sendMessage()" title="مراسلة">💬</button>' +
+                '<button class="action-btn block" onclick="blockUser(' + friend.id + ')" title="حظر">🚫</button>' +
+                '</div>' +
+                '</div>';
+        }
+
+        function getEmptyState(message) {
+            return '<div class="empty-state">' +
+                '<div class="empty-icon">👥</div>' +
+                '<div class="empty-title">' + message + '</div>' +
+                '</div>';
+        }
+
+        // Tab Switching
+        function switchTab(tabName, card) {
+            // Update cards
+            document.querySelectorAll('.stat-card').forEach(function(c) {
+                c.classList.remove('active');
+            });
+            card.classList.add('active');
+            
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(function(content) {
+                content.classList.remove('active');
+            });
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
+
+        // Actions
+        function sendMessage() {
+            showToast('جاري فتح المحادثة...');
+        }
+
+        function blockUser(id) {
+            showToast('تم حظر المستخدم');
+        }
+
+        function unblockUser(id) {
+            showToast('تم إلغاء الحظر');
+        }
+
+        function acceptRequest(id) {
+            showToast('تم قبول الطلب');
+            // Remove from pending
+            const index = pending.findIndex(function(p) { return p.id === id; });
+            if (index > -1) {
+                pending.splice(index, 1);
+                document.getElementById('pendingCount').textContent = pending.length;
+                renderPending();
+            }
+        }
+
+        function declineRequest(id) {
+            showToast('تم رفض الطلب');
+            // Remove from pending
+            const index = pending.findIndex(function(p) { return p.id === id; });
+            if (index > -1) {
+                pending.splice(index, 1);
+                document.getElementById('pendingCount').textContent = pending.length;
+                renderPending();
+            }
+        }
+
+        // Search
+        function searchFriends() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            if (searchTerm) {
+                showToast('البحث عن: ' + searchTerm);
+            }
+        }
+
+        // Toast
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(function() {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            renderFollowers();
+            renderFollowing();
+            renderBlocked();
+            renderPending();
+        });
+    </script>
+</body>
+</html>

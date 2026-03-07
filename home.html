@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>الصفحة الرئيسية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300,400,500,700,800&display=swap" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVP5IRHetBo7JDSRLteQOFX4fhsts3ur0",
+            authDomain: "chat-94032.firebaseapp.com",
+            projectId: "chat-94032",
+            storageBucket: "chat-94032.firebasestorage.app",
+            messagingSenderId: "920803161623",
+            appId: "1:920803161623:web:a2995a99c07b42af1d0e52"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        window.firebaseDb = db;
+        window.firebaseAuth = auth;
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #1e3a5f;
+            --primary-light: #2c5282;
+            --primary-dark: #152a45;
+            --secondary: #c9a227;
+            --secondary-light: #d4b43a;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --surface-alt: #f1f5f9;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --error: #dc2626;
+            --success: #059669;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        [data-theme="dark"] {
+            --primary: #3b82f6;
+            --primary-light: #60a5fa;
+            --primary-dark: #1d4ed8;
+            --secondary: #fbbf24;
+            --background: #0f172a;
+            --surface: #1e293b;
+            --surface-alt: #334155;
+            --text: #f8fafc;
+            --text-light: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --border-light: #475569;
+        }
+
+        body {
+            background-color: var(--background);
+            min-height: 100vh;
+            color: var(--text);
+            line-height: 1.6;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            padding-bottom: 80px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-lg);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.1;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            font-size: 18px;
+            color: white;
+        }
+
+        .user-name {
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1;
+        }
+
+        .header-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            text-decoration: none;
+        }
+
+        .header-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 18px;
+            height: 18px;
+            background: var(--error);
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Image Slider */
+.slider-container{
+    position: relative;
+    width: 100%;
+    height: 200px;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    margin-bottom: 24px;
+    direction: ltr; /* مهم جداً للموبايل */
+}
+
+.slider-wrapper{
+    display:flex;
+    flex-direction:row;
+    transition: transform 0.5s ease;
+    height:100%;
+    width:100%;
+}
+
+       .slide {
+    flex: 0 0 100%;
+    height: 100%;
+    position: relative;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+}
+
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .slide-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+            color: white;
+        }
+
+        .slide-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .slide-subtitle {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .slider-dots {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .dot.active {
+            background: white;
+            width: 24px;
+            border-radius: 4px;
+        }
+
+        /* Section Header */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+        }
+
+        .view-all-btn {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.3s;
+        }
+
+        .view-all-btn:hover {
+            color: var(--primary-light);
+            gap: 8px;
+        }
+
+        /* Speakers Section */
+        .speakers-scroll {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding-bottom: 16px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .speakers-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .speaker-card {
+            min-width: 140px;
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .speaker-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .speaker-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 12px;
+            border: 3px solid var(--border);
+            overflow: hidden;
+            position: relative;
+            background: var(--surface-alt);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .speaker-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .speaker-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .speaker-title {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .follow-btn {
+            width: 100%;
+            padding: 8px;
+            background: transparent;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            color: var(--primary);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .follow-btn:hover, .follow-btn.following {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Friend Request Button Styles */
+        .friend-btn {
+            width: 100%;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        .friend-btn.add {
+            background: var(--primary);
+            color: white;
+        }
+
+        .friend-btn.add:hover {
+            background: var(--primary-light);
+        }
+
+        .friend-btn.pending {
+            background: var(--warning);
+            color: white;
+        }
+
+        .friend-btn.friends {
+            background: var(--success);
+            color: white;
+        }
+
+        .friend-btn.message {
+            background: var(--primary);
+            color: white;
+            width: auto;
+            padding: 8px 16px;
+        }
+
+        /* Islamic Library Section */
+        .library-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .library-card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+            text-decoration: none;
+            color: var(--text);
+        }
+
+        .library-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .library-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--surface-alt) 0%, var(--border-light) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .library-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .library-count {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Videos Section */
+        .videos-scroll {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding-bottom: 16px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .videos-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .video-card {
+            min-width: 280px;
+            background: var(--surface);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+            text-decoration: none;
+            color: var(--text);
+        }
+
+        .video-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .video-thumbnail {
+            position: relative;
+            width: 100%;
+            height: 160px;
+            background: var(--surface-alt);
+        }
+
+        .video-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-duration {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .play-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--primary);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .video-card:hover .play-btn {
+            opacity: 1;
+        }
+
+        .video-info {
+            padding: 16px;
+        }
+
+        .video-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .video-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .video-author {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .author-avatar-small {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--surface-alt);
+        }
+
+        /* Footer Navigation */
+        .footer-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 12px 20px 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 500;
+            transition: all 0.3s;
+            padding: 4px 12px;
+            border-radius: 12px;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item.active {
+            background: rgba(30, 58, 95, 0.1);
+        }
+
+        [data-theme="dark"] .nav-item.active {
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 16px;
+            }
+
+            .slider-container {
+                height: 180px;
+            }
+
+            .library-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .video-card {
+                min-width: 260px;
+            }
+
+            .footer-nav {
+                padding: 8px 12px 16px;
+            }
+
+            .nav-item {
+                padding: 4px 8px;
+                font-size: 10px;
+            }
+        }
+
+        /* Decorative Elements */
+        .decoration-circle {
+            position: fixed;
+            border-radius: 50%;
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .decoration-circle-1 {
+            width: 400px;
+            height: 400px;
+            background: var(--primary);
+            top: -200px;
+            right: -200px;
+        }
+
+        .decoration-circle-2 {
+            width: 300px;
+            height: 300px;
+            background: var(--secondary);
+            bottom: -150px;
+            left: -150px;
+        }
+
+        /* Section Spacing */
+        .section {
+            margin-bottom: 32px;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            top: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--success);
+            color: white;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            box-shadow: var(--shadow-xl);
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Decorative Background Elements -->
+    <div class="decoration-circle decoration-circle-1"></div>
+    <div class="decoration-circle decoration-circle-2"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="user-info">
+            <div class="user-avatar" id="userAvatar">👤</div>
+            <span class="user-name" id="userName">...</span>
+        </div>
+        <div class="header-actions">
+            <a href="#" class="header-btn" onclick="showToast('الإشعارات')">
+                🔔
+                <span class="notification-badge">3</span>
+            </a>
+            <button class="header-btn" onclick="toggleTheme()" id="themeToggle">
+                <span id="themeIcon">☀️</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Image Slider -->
+        <div class="slider-container">
+            <div class="slider-wrapper" id="sliderWrapper">
+                <div class="slide">
+                    <img src="1.jpeg" alt="صورة 1" onerror="this.style.display='none'">
+                    <div class="slide-overlay">
+                        <div class="slide-title"> الدكور حسين الباز</div>
+                        <div class="slide-subtitle">متخصص في محاورت الاديان   </div>
+                    </div>
+                </div>
+                <div class="slide">
+                    <img src="2.jpeg" alt="صورة 2" onerror="this.style.display='none'">
+                    <div class="slide-overlay">
+                        <div class="slide-title"> الشيخ هاشم هنداوي</div>
+                        <div class="slide-subtitle">محاور</div>
+                    </div>
+                </div>
+                <div class="slide">
+                    <img src="3.jpeg" alt="صورة 3" onerror="this.style.display='none'">
+                    <div class="slide-overlay">
+                        <div class="slide-title"> الدكتور عاصم هيثم </div>
+                        <div class="slide-subtitle">  محاور </div>
+                    </div>
+                </div>
+                <div class="slide">
+                    <img src="as.png" alt="صورة 4" onerror="this.style.display='none'">
+                    <div class="slide-overlay">
+                        <div class="slide-title">الأربعين النووية</div>
+                        <div class="slide-subtitle">شرح الأحاديثقدسية</div>
+                    </div>
+                </div>
+            </div>
+            <div class="slider-dots" id="sliderDots"></div>
+        </div>
+
+        <!-- Speakers Section -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-icon">🎤</span>
+                    المحاورون
+                </h2>
+                <a href="#" class="view-all-btn" onclick="showToast('عرض الكل')">
+                    عرض الكل ←
+                </a>
+            </div>
+            <div class="speakers-scroll" id="speakersContainer">
+                <!-- سيتم إنشاؤها بواسطة JavaScript -->
+            </div>
+        </section>
+
+        <!-- Users Section - جلب من Firebase -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-icon">👥</span>
+                    المستخدمون
+                </h2>
+                <a href="friends.html" class="view-all-btn">
+                    عرض الكل ←
+                </a>
+            </div>
+            <div class="speakers-scroll" id="usersContainer">
+                <!-- سيتم إنشاؤها بواسطة JavaScript من Firebase -->
+                <div class="speaker-card">
+                    <div class="speaker-avatar" style="display:flex;align-items:center;justify-content:center;font-size:24px;">
+                        ⏳
+                    </div>
+                    <div class="speaker-name">جاري التحميل...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Islamic Library Section -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-icon">📚</span>
+                    المكتبة الإسلامية
+                </h2>
+            </div>
+            <div class="library-grid">
+                <a href="#" class="library-card" onclick="showToast('أحاديث')">
+                    <div class="library-icon">📖</div>
+                    <div class="library-title">أهم الأحاديث</div>
+                    <div class="library-count">+1000 حديث</div>
+                </a>
+                <a href="#" class="library-card" onclick="showToast('الأذكار')">
+                    <div class="library-icon">🤲</div>
+                    <div class="library-title">الأذكار والأدعية</div>
+                    <div class="library-count">+500 ذكر</div>
+                </a>
+                <a href="#" class="library-card" onclick="showToast('الزامات')">
+                    <div class="library-icon">📿</div>
+                    <div class="library-title">أهم اللزامات</div>
+                    <div class="library-count">+200 لزام</div>
+                </a>
+                <a href="#" class="library-card" onclick="showToast('التفسير')">
+                    <div class="library-icon">📜</div>
+                    <div class="library-title">التفسير الميسر</div>
+                    <div class="library-count">سورة الكهف</div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Videos Section -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-icon">🎥</span>
+                    أهم المقاطع
+                </h2>
+                <a href="#" class="view-all-btn" onclick="showToast('عرض الكل')">
+                    عرض الكل ←
+                </a>
+            </div>
+            <div class="videos-scroll" id="videosContainer">
+                <!-- سيتم إنشاؤها بواسطة JavaScript -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer Navigation -->
+    <nav class="footer-nav">
+        <a href="#" class="nav-item active" onclick="showToast('الرئيسية')">
+            <span class="nav-icon">🏠</span>
+            <span>الرئيسية</span>
+        </a>
+        <a href="#" class="nav-item" onclick="showToast('المواقع')">
+            <span class="nav-icon">🌐</span>
+            <span>المواقع</span>
+        </a>
+        <a href="friends.html" class="nav-item" onclick="event.stopPropagation()">
+            <span class="nav-icon">👥</span>
+            <span>الأصدقاء</span>
+        <a href="chat.html" class="nav-item" onclick="event.stopPropagation()">
+            <span class="nav-icon">💬</span>
+            <span>الدردشة</span>
+        </a>
+<a href="settings.html" class="nav-item" onclick="showToast('الإعدادات')">
+            <span class="nav-icon">⚙️</span>
+            <span>الإعدادات</span>
+        </a>
+    </nav>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <span>✓</span>
+        <span id="toastMessage">تم بنجاح!</span>
+    </div>
+
+    <script>
+        // Theme Management
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            document.getElementById('themeIcon').textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        initTheme();
+
+        // Load User Data from Firebase
+        async function loadUserData() {
+            try {
+                const auth = window.firebaseAuth;
+                const db = window.firebaseDb;
+                
+                if (!auth || !db) {
+                    console.log('Firebase not initialized yet');
+                    return;
+                }
+
+                // Wait for auth to be ready
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                auth.onAuthStateChanged(async (user) => {
+                    if (user) {
+                        console.log('User logged in:', user.uid);
+                        
+                        // Get user data from Firestore
+                        const { getDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+                        
+                        try {
+                            const userDoc = await getDoc(doc(db, 'users', user.uid));
+                            
+                            if (userDoc.exists()) {
+                                const userData = userDoc.data();
+                                console.log('User data:', userData);
+                                
+                                // Update UI with user data
+                                const userNameEl = document.getElementById('userName');
+                                const userAvatarEl = document.getElementById('userAvatar');
+                                
+                                if (userNameEl) {
+                                    userNameEl.textContent = userData.fullName || user.displayName || 'المستخدم';
+                                }
+                                
+                                if (userAvatarEl && userData.fullName) {
+                                    // Create initials from name
+                                    const initials = userData.fullName.split(' ').map(n => n[0]).join('').substring(0, 2);
+                                    userAvatarEl.textContent = initials;
+                                }
+                            } else {
+                                console.log('No user document found');
+                                // Try to use auth display name
+                                if (user.displayName) {
+                                    document.getElementById('userName').textContent = user.displayName;
+                                }
+                            }
+                        } catch (err) {
+                            console.error('Error getting user data:', err);
+                            // Use auth display name as fallback
+                            if (user.displayName) {
+                                document.getElementById('userName').textContent = user.displayName;
+                            }
+                        }
+                    } else {
+                        console.log('No user logged in');
+                        // Redirect to login if not authenticated
+                        // window.location.href = 'index.html';
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading user data:', error);
+            }
+        }
+
+        // Initialize user data loading
+        loadUserData();
+
+        // Initialize slider immediately when script loads
+        // (scripts at bottom of body already have DOM available)
+        
+        // Slider Functionality - Simple and Robust
+        let currentSlide = 0;
+        let totalSlides = 0;
+        let slideInterval;
+        
+        // Touch/Swipe Variables
+        let touchStartX = 0;
+        let touchEndX = 0;
+        let touchStartY = 0;
+        let touchEndY = 0;
+        let isDragging = false;
+        let startPos = 0;
+        let currentTranslate = 0;
+        let prevTranslate = 0;
+        let animationID;
+        let currentSlideWidth = 0;
+
+        function initSlider() {
+            // Get all slides from HTML
+            const slides = document.querySelectorAll('.slide');
+            totalSlides = slides.length;
+            
+            if (totalSlides === 0) {
+                console.log('No slides found');
+                return;
+            }
+
+            console.log('Found', totalSlides, 'slides');
+
+            // Get slide width for calculations
+            currentSlideWidth = slides[0].offsetWidth;
+            
+            window.addEventListener('resize', () => {
+                currentSlideWidth = slides[0].offsetWidth;
+            });
+
+            // Create dots
+            const dotsContainer = document.getElementById('sliderDots');
+            if (!dotsContainer) {
+                console.error('Dots container not found');
+                return;
+            }
+            dotsContainer.innerHTML = '';
+            
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'dot' + (i === 0 ? ' active' : '');
+                dot.onclick = function() { goToSlide(i); };
+                dotsContainer.appendChild(dot);
+            }
+
+            // Add touch event listeners to slider container
+            const sliderContainer = document.querySelector('.slider-container');
+            if (sliderContainer) {
+                sliderContainer.addEventListener('touchstart', touchStart, { passive: true });
+                sliderContainer.addEventListener('touchmove', touchMove, );
+                sliderContainer.addEventListener('touchend', touchEnd);
+                
+                // Mouse support for desktop testing
+                sliderContainer.addEventListener('mousedown', touchStart);
+                sliderContainer.addEventListener('mousemove', touchMove);
+                sliderContainer.addEventListener('mouseup', touchEnd);
+                sliderContainer.addEventListener('mouseleave', touchEnd);
+            }
+
+            // Preload images and start slider immediately
+            preloadAndStartSlider();
+        }
+        
+        // Touch Event Handlers
+        function touchStart(event) {
+            // Get position based on touch or mouse
+            if (event.type === 'touchstart') {
+                touchStartX = event.touches[0].clientX;
+                touchStartY = event.touches[0].clientY;
+            } else {
+                touchStartX = event.clientX;
+                touchStartY = event.clientY;
+            }
+            
+            isDragging = true;
+            startPos = getPositionX(event);
+            
+            // Stop auto-play while dragging
+            if (slideInterval) {
+                clearInterval(slideInterval);
+                slideInterval = null;
+            }
+        }
+
+        function touchMove(event) {
+            if (!isDragging) return;
+            
+            // Prevent page scrolling while swiping slider
+            event.preventDefault();
+            
+            const currentPosition = getPositionX(event);
+            const diff = currentPosition - startPos;
+            
+            const wrapper = document.getElementById('sliderWrapper');
+            if (wrapper) {
+                // Move the slider slightly with finger
+                currentTranslate = prevTranslate + diff;
+                wrapper.style.transform = `translateX(calc(-${currentSlide * 100}% + ${diff}px))`;
+            }
+        }
+
+        function touchEnd(event) {
+            if (!isDragging) return;
+            
+            isDragging = false;
+            
+            // Determine swipe direction
+            if (event.type === 'touchend') {
+                touchEndX = event.changedTouches[0].clientX;
+                touchEndY = event.changedTouches[0].clientY;
+            } else {
+                touchEndX = event.clientX;
+                touchEndY = event.clientY;
+            }
+            
+            const diff = touchEndX - touchStartX;
+            const diffY = Math.abs(touchEndY - touchStartY);
+            
+            // Only trigger swipe if horizontal movement is greater than vertical
+            // and the swipe distance is significant (at least 30px)
+            if (Math.abs(diff) > 30 && Math.abs(diff) > diffY) {
+                if (diff > 0) {
+                    // Swiped right - go to previous slide
+                    goToPrevSlide();
+                } else {
+                    // Swiped left - go to next slide
+                    nextSlide();
+                }
+            } else {
+                // Not a valid swipe, reset position
+                updateSlider();
+            }
+            
+            // Restart auto-play
+            if (!slideInterval) {
+                slideInterval = setInterval(nextSlide, 3000);
+            }
+        }
+
+       function getPositionX(event) {
+    if (event.type.includes('touch')) {
+        return event.touches[0]?.clientX || event.changedTouches[0].clientX;
+    } else {
+        return event.clientX;
+    }
+}
+
+        function goToPrevSlide() {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            updateSlider();
+        }
+
+        function preloadAndStartSlider() {
+            const images = document.querySelectorAll('.slide img');
+            let loadedCount = 0;
+            const totalImages = images.length;
+            
+            if (totalImages === 0) {
+                console.log('No images found');
+                return;
+            }
+            
+            console.log('Processing', totalImages, 'images');
+            
+            // Function to check if all images are processed
+            const checkAllImagesProcessed = () => {
+                if (loadedCount >= totalImages) {
+                    // All images processed, start slider
+                    console.log('All images processed, starting slider');
+                    slideInterval = setInterval(nextSlide, 3000);
+                }
+            };
+            
+            images.forEach((img, index) => {
+                console.log('Image', index, 'src:', img.src);
+                
+                // Check if image is already loaded
+                if (img.complete && img.naturalHeight !== 0) {
+                    loadedCount++;
+                    console.log('Image', index, 'already loaded');
+                    checkAllImagesProcessed();
+                } else {
+                    // Add load/error handlers
+                    img.onload = () => {
+                        loadedCount++;
+                        console.log('Image', index, 'loaded, count:', loadedCount);
+                        checkAllImagesProcessed();
+                    };
+                    img.onerror = () => {
+                        loadedCount++;
+                        console.log('Image', index, 'failed to load');
+                        // Create a colored placeholder
+                        img.style.backgroundColor = '#1e3a5f';
+                        checkAllImagesProcessed();
+                    };
+                }
+            });
+            
+            // Safety timeout - start slider after 3 seconds even if images not loaded
+            setTimeout(() => {
+                if (!slideInterval) {
+                    console.log('Safety timeout - starting slider');
+                    slideInterval = setInterval(nextSlide, 3000);
+                }
+            }, 3000);
+        }
+
+      function updateSlider() {
+    const wrapper = document.getElementById('sliderWrapper');
+
+    wrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
+
+    const dots = document.querySelectorAll('.dot');
+    dots.forEach((dot, index) => {
+        dot.classList.toggle('active', index === currentSlide);
+    });
+}
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            updateSlider();
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            updateSlider();
+        }
+
+        // Initialize immediately since script is at bottom of body
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initSlider);
+        } else {
+            // DOM is already ready
+            initSlider();
+        }
+
+        // Speakers Data
+        const speakers = [
+            { name: 'الشيخ محمد العريفي', title: 'عالم دين', avatar: 'https://i.pravatar.cc/150?img=11', following: false },
+            { name: 'الشيخ صالح المغامسي', title: 'إمام مسجد', avatar: 'https://i.pravatar.cc/150?img=13', following: true },
+            { name: 'الشيخ عبدالرحمن السديس', title: 'خطيب', avatar: 'https://i.pravatar.cc/150?img=15', following: false },
+            { name: 'الشيخ سعود الشريم', title: 'قارئ', avatar: 'https://i.pravatar.cc/150?img=17', following: false },
+            { name: 'الشيخ أحمد العجمي', title: 'مفسر', avatar: 'https://i.pravatar.cc/150?img=19', following: true },
+            { name: 'الشيخ خالد الجليل', title: 'إمام', avatar: 'https://i.pravatar.cc/150?img=21', following: false },
+        ];
+
+        function renderSpeakers() {
+            const container = document.getElementById('speakersContainer');
+            
+            for (let i = 0; i < speakers.length; i++) {
+                const speaker = speakers[i];
+                const card = document.createElement('div');
+                card.className = 'speaker-card';
+                card.innerHTML = 
+                    '<div class="speaker-avatar">' +
+                        '<img src="' + speaker.avatar + '" alt="' + speaker.name + '">' +
+                    '</div>' +
+                    '<div class="speaker-name">' + speaker.name + '</div>' +
+                    '<div class="speaker-title">' + speaker.title + '</div>' +
+                    '<button class="follow-btn ' + (speaker.following ? 'following' : '') + '" ' +
+                            'onclick="toggleFollow(this)" ' +
+                            'data-index="' + i + '">' +
+                        (speaker.following ? 'متابع' : 'متابعة') +
+                    '</button>';
+                container.appendChild(card);
+            }
+        }
+
+        function toggleFollow(btn) {
+            const isFollowing = btn.classList.contains('following');
+            const index = btn.getAttribute('data-index');
+            
+            if (isFollowing) {
+                btn.classList.remove('following');
+                btn.textContent = 'متابعة';
+                showToast('تم إلغاء المتابعة');
+            } else {
+                btn.classList.add('following');
+                btn.textContent = 'متابع';
+                showToast('تمت المتابعة بنجاح');
+            }
+            
+            // Update data
+            speakers[index].following = !isFollowing;
+        }
+
+        renderSpeakers();
+
+        // Videos Data
+        const videos = [
+            { 
+                title: 'فضل صيام يوم عرفة وكيفية استغلاله', 
+                thumbnail: 'https://images.unsplash.com/photo-1564769625905-50e93615e769?w=400&h=300&fit=crop',
+                duration: '15:30',
+                author: 'الشيخ العريفي',
+                authorAvatar: 'https://i.pravatar.cc/150?img=11',
+                views: '125K'
+            },
+            { 
+                title: 'شرح حديث: إنما الأعمال بالنيات', 
+                thumbnail: 'https://images.unsplash.com/photo-1589994965851-a8f479c573a9?w=400&h=300&fit=crop',
+                duration: '22:45',
+                author: 'الشيخ المغامسي',
+                authorAvatar: 'https://i.pravatar.cc/150?img=13',
+                views: '89K'
+            },
+            { 
+                title: 'تفسير سورة الإخلاص - الدرس الأول', 
+                thumbnail: 'https://images.unsplash.com/photo-1590073242678-70b9f4e53b04?w=400&h=300&fit=crop',
+                duration: '18:20',
+                author: 'الشيخ السديس',
+                authorAvatar: 'https://i.pravatar.cc/150?img=15',
+                views: '234K'
+            },
+            { 
+                title: 'أحكام الزكاة في رمضان', 
+                thumbnail: 'https://images.unsplash.com/photo-1542816417-0983c9b9b72c?w=400&h=300&fit=crop',
+                duration: '12:10',
+                author: 'الشيخ الشريم',
+                authorAvatar: 'https://i.pravatar.cc/150?img=17',
+                views: '67K'
+            },
+        ];
+
+        function renderVideos() {
+            const container = document.getElementById('videosContainer');
+            
+            for (let i = 0; i < videos.length; i++) {
+                const video = videos[i];
+                const card = document.createElement('a');
+                card.href = '#';
+                card.className = 'video-card';
+                card.onclick = function(e) {
+                    e.preventDefault();
+                    showToast('جاري تشغيل: ' + video.title);
+                };
+                
+                card.innerHTML = 
+                    '<div class="video-thumbnail">' +
+                        '<img src="' + video.thumbnail + '" alt="' + video.title + '">' +
+                        '<span class="video-duration">' + video.duration + '</span>' +
+                        '<div class="play-btn">▶</div>' +
+                    '</div>' +
+                    '<div class="video-info">' +
+                        '<div class="video-title">' + video.title + '</div>' +
+                        '<div class="video-meta">' +
+                            '<div class="video-author">' +
+                                '<img src="' + video.authorAvatar + '" class="author-avatar-small" alt="">' +
+                                '<span>' + video.author + '</span>' +
+                            '</div>' +
+                            '<span>•</span>' +
+                            '<span>' + video.views + ' مشاهدة</span>' +
+                        '</div>' +
+                    '</div>';
+                
+                container.appendChild(card);
+            }
+        }
+
+        renderVideos();
+
+        // ============================================
+        // جلب المستخدمين من Firebase وإدارة الأصدقاء
+        // ============================================
+        
+        let currentUser = null;
+        
+        async function loadUsersFromFirebase() {
+            try {
+                const auth = window.firebaseAuth;
+                const db = window.firebaseDb;
+                
+                if (!auth || !db) {
+                    console.log('Firebase not initialized yet');
+                    return;
+                }
+                
+                // Wait for auth
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                auth.onAuthStateChanged(async (user) => {
+                    if (user) {
+                        currentUser = user;
+                        await renderUsers(db, user.uid);
+                    } else {
+                        // Show all users even if not logged in
+                        await renderUsers(db, null);
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+        
+        async function renderUsers(db, currentUserId) {
+            try {
+                const { getDocs, collection, query, where } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+                
+                let users = [];
+                
+                if (currentUserId) {
+                    // Get all users except current user
+                    const q = query(collection(db, 'users'), where('uid', '!=', currentUserId));
+                    const snapshot = await getDocs(q);
+                    snapshot.forEach(doc => {
+                        users.push({ id: doc.id, ...doc.data() });
+                    });
+                } else {
+                    // Get all users
+                    const snapshot = await getDocs(collection(db, 'users'));
+                    snapshot.forEach(doc => {
+                        users.push({ id: doc.id, ...doc.data() });
+                    });
+                }
+                
+                const container = document.getElementById('usersContainer');
+                
+                if (users.length === 0) {
+                    container.innerHTML = `
+                        <div class="speaker-card">
+                            <div class="speaker-avatar" style="display:flex;align-items:center;justify-content:center;font-size:24px;">
+                                👥
+                            </div>
+                            <div class="speaker-name">لا يوجد مستخدمون</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Limit to 10 users for display
+                const displayUsers = users.slice(0, 10);
+                
+                let html = '';
+                for (let i = 0; i < displayUsers.length; i++) {
+                    const user = displayUsers[i];
+                    const initials = getInitials(user.fullName);
+                    const avatarHtml = user.avatar 
+                        ? `<img src="${user.avatar}" alt="${user.fullName}">`
+                        : `<span style="font-size:24px;">${initials}</span>`;
+                    
+                    html += `
+                        <div class="speaker-card">
+                            <div class="speaker-avatar">
+                                ${avatarHtml}
+                            </div>
+                            <div class="speaker-name">${user.fullName || 'مستخدم'}</div>
+                            <div class="speaker-title">@${user.username || 'user'}</div>
+                            ${currentUserId ? `
+                                <button class="friend-btn add" onclick="sendFriendRequest('${user.uid}', '${user.fullName}', '${user.avatar || ''}')">
+                                    ➕ إضافة صديق
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+                
+                container.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error rendering users:', error);
+                const container = document.getElementById('usersContainer');
+                container.innerHTML = `
+                    <div class="speaker-card">
+                        <div class="speaker-avatar" style="display:flex;align-items:center;justify-content:center;font-size:24px;">
+                            ⚠️
+                        </div>
+                        <div class="speaker-name">تعذر تحميل المستخدمين</div>
+                    </div>
+                `;
+            }
+        }
+        
+        function getInitials(name) {
+            if (!name) return '?';
+            return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        }
+        
+        // Send friend request
+        async function sendFriendRequest(userId, userName, userAvatar) {
+            try {
+                const auth = window.firebaseAuth;
+                const db = window.firebaseDb;
+                
+                if (!auth || !db) {
+                    showToast('يرجى تسجيل الدخول أولاً', 'error');
+                    return;
+                }
+                
+                auth.onAuthStateChanged(async (user) => {
+                    if (!user) {
+                        showToast('يرجى تسجيل الدخول أولاً', 'error');
+                        return;
+                    }
+                    
+                    // Get current user data
+                    const { getDocs, query, where, collection, addDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+                    
+                    const q = query(collection(db, 'users'), where('uid', '==', user.uid));
+                    const snapshot = await getDocs(q);
+                    
+                    let currentUserData = null;
+                    snapshot.forEach(doc => {
+                        currentUserData = doc.data();
+                    });
+                    
+                    if (!currentUserData) {
+                        showToast('حدث خطأ', 'error');
+                        return;
+                    }
+                    
+                    // Add friend request
+                    await addDoc(collection(db, 'friendRequests'), {
+                        fromUid: user.uid,
+                        fromName: currentUserData.fullName,
+                        fromUsername: currentUserData.username,
+                        fromAvatar: currentUserData.avatar || null,
+                        toUid: userId,
+                        toName: userName,
+                        toAvatar: userAvatar,
+                        status: 'pending',
+                        createdAt: serverTimestamp()
+                    });
+                    
+                    showToast('✅ تم إرسال طلب الصداقة');
+                });
+            } catch (error) {
+                console.error('Error sending friend request:', error);
+                showToast('فشل إرسال الطلب', 'error');
+            }
+        }
+        
+        // Initialize users loading
+        loadUsersFromFirebase();
+
+        // Toast Notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            if (toastMessage) {
+                toastMessage.textContent = message;
+            }
+            
+            if (toast) {
+                toast.classList.add('show');
+                
+                setTimeout(function() {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>
