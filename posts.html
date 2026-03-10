@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>المنشورات</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body { padding-bottom: 80px; }
+        
+        /* Create Post Card */
+        .create-post-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+        
+        .create-post-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .create-post-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: var(--surface-alt);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .create-post-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .create-post-input {
+            flex: 1;
+            background: var(--surface-alt);
+            border: none;
+            border-radius: 24px;
+            padding: 12px 16px;
+            color: var(--text);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .create-post-input:hover {
+            background: var(--border);
+        }
+        
+        .create-post-actions {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .create-post-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        .create-post-btn.image { background: var(--surface-alt); color: var(--text); }
+        .create-post-btn.image:hover { background: var(--border); }
+        
+        /* Post Card */
+        .post-card {
+            background: var(--surface);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+        
+        .post-header {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            gap: 12px;
+        }
+        
+        .post-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: var(--surface-alt);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--primary);
+            cursor: pointer;
+        }
+        
+        .post-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .post-user-info {
+            flex: 1;
+        }
+        
+        .post-user-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+            cursor: pointer;
+        }
+        
+        .post-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        
+        .post-privacy {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .post-privacy.public { background: rgba(5, 150, 105, 0.1); color: var(--success); }
+        .post-privacy.friends { background: rgba(30, 58, 95, 0.1); color: var(--primary); }
+        
+        .post-menu-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: var(--surface-alt);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: var(--text-muted);
+            transition: all 0.3s;
+        }
+        
+        .post-menu-btn:hover { background: var(--border); }
+        
+        .post-content {
+            padding: 0 16px 16px;
+        }
+        
+        .post-text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text);
+            margin-bottom: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .post-image {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            max-height: 400px;
+            object-fit: cover;
+        }
+        
+        .post-stats {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-top: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        
+        .post-likes-count {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .post-actions {
+            display: flex;
+            border-top: 1px solid var(--border);
+        }
+        
+        .post-action-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-light);
+            transition: all 0.3s;
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        .post-action-btn:hover { background: var(--surface-alt); }
+        .post-action-btn.liked { color: var(--error); }
+        
+        /* Comments Section */
+        .post-comments {
+            padding: 0 16px 16px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .comment {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        
+        .comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: var(--surface-alt);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+        
+        .comment-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .comment-content {
+            flex: 1;
+            background: var(--surface-alt);
+            border-radius: 12px;
+            padding: 10px 12px;
+        }
+        
+        .comment-user-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        
+        .comment-text {
+            font-size: 14px;
+            color: var(--text);
+            line-height: 1.5;
+        }
+        
+        .comment-time {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        
+        .comment-input-wrapper {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        
+        .comment-input {
+            flex: 1;
+            padding: 10px 14px;
+            background: var(--surface-alt);
+            border: none;
+            border-radius: 24px;
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        .comment-send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: var(--primary);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .comment-send-btn:hover { background: var(--primary-light); }
+        
+        /* Create Post Modal */
+        .create-post-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 9998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        
+        .create-post-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .create-post-modal {
+            background: var(--surface);
+            border-radius: 24px 24px 0 0;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow: hidden;
+            transform: translateY(100%);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .create-post-modal-overlay.active .create-post-modal {
+            transform: translateY(0);
+        }
+        
+        .create-post-modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .create-post-modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        
+        .create-post-modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: var(--surface-alt);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--text);
+        }
+        
+        .create-post-modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .create-post-modal textarea {
+            width: 100%;
+            border: none;
+            color: var(--text);
+            font-size: 16px;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            font-family: 'Tajawal', sans-serif;
+            min-height: 120px;
+        }
+        
+        .create-post-modal textarea::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .post-image-preview {
+            width: 100%;
+            border-radius: 12px;
+            margin-top: 16px;
+            max-height: 250px;
+            object-fit: cover;
+            display: none;
+        }
+        
+        .post-image-preview.has-image {
+            display: block;
+        }
+        
+        .privacy-selector {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .privacy-option {
+            flex: 1;
+            padding: 14px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            background: var(--surface-alt);
+        }
+        
+        .privacy-option:hover { border-color: var(--primary); }
+        .privacy-option.active { border-color: var(--primary); background: rgba(30, 58, 95, 0.1); }
+        
+        .privacy-option-icon { font-size: 24px; display: block; margin-bottom: 6px; }
+        .privacy-option-label { font-size: 13px; font-weight: 600; color: var(--text); }
+        
+        .create-post-modal-footer {
+            padding: 16px 20px 20px;
+        }
+        
+        .submit-post-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            background: var(--primary);
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        .submit-post-btn:hover { background: var(--primary-light); }
+        .submit-post-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        
+        /* Empty State */
+        .empty-posts {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .empty-posts-icon {
+            width: 100px;
+            height: 100px;
+            background: var(--surface-alt);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            margin: 0 auto 20px;
+        }
+        
+        .empty-posts-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+        
+        .empty-posts-text {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        
+        /* Post Menu */
+        .post-menu {
+            position: absolute;
+            background: var(--surface);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+            min-width: 150px;
+            padding: 8px;
+            display: none;
+            z-index: 100;
+        }
+        
+        .post-menu.show { display: block; }
+        
+        .post-menu-item {
+            padding: 12px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+            transition: all 0.2s;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: right;
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        .post-menu-item:hover { background: var(--surface-alt); }
+        .post-menu-item.delete { color: var(--error); }
+        
+        /* Loading */
+        .posts-loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+
+        /* Search Styles */
+        .search-container {
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 14px 16px 14px 44px;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 24px;
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 16px;
+            color: var(--text-muted);
+            font-size: 18px;
+        }
+
+        .search-tabs {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .search-tab {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: var(--surface-alt);
+            border-radius: 20px;
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        .search-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .search-results {
+            margin-top: 12px;
+        }
+
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--surface);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .search-result-item:hover {
+            background: var(--surface-alt);
+        }
+
+        .search-result-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: var(--surface-alt);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-result-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .search-result-info {
+            flex: 1;
+        }
+
+        .search-result-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .search-result-username {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* User Profile Modal */
+        .user-profile-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 9998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .user-profile-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .user-profile-modal {
+            background: var(--surface);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--border);
+            transform: scale(0.9);
+            transition: all 0.3s ease;
+        }
+
+        .user-profile-overlay.active .user-profile-modal {
+            transform: scale(1);
+        }
+
+        .user-profile-header {
+            position: relative;
+            height: 150px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        }
+
+        .user-profile-close {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .user-profile-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .user-profile-avatar {
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 4px solid var(--surface);
+            background: var(--surface-alt);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-profile-body {
+            padding: 60px 20px 20px;
+            text-align: center;
+        }
+
+        .user-profile-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .user-profile-username {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .user-profile-stats {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 20px;
+        }
+
+        .user-profile-stat {
+            text-align: center;
+        }
+
+        .user-profile-stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .user-profile-stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .user-profile-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .user-profile-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Tajawal', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .user-profile-btn.message {
+            background: var(--primary);
+            color: white;
+        }
+
+        .user-profile-btn.message:hover {
+            background: var(--primary-light);
+        }
+
+        .user-profile-btn.friend {
+            background: var(--surface-alt);
+            color: var(--text);
+        }
+
+        .user-profile-btn.friend:hover {
+            background: var(--border);
+        }
+
+        /* User Posts Section */
+        .user-profile-posts {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .user-profile-posts-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 12px;
+            text-align: right;
+        }
+
+        .user-profile-post {
+            background: var(--surface-alt);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+
+        .user-profile-post-text {
+            font-size: 14px;
+            color: var(--text);
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .user-profile-post-image {
+            width: 100%;
+            border-radius: 8px;
+            max-height: 200px;
+            object-fit: cover;
+        }
+
+        .user-profile-post-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .user-profile-empty-posts {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+        }
+    </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        const firebaseConfig = { apiKey: "AIzaSyDVP5IRHetBo7JDSRLteQOFX4fhsts3ur0", authDomain: "chat-94032.firebaseapp.com", projectId: "chat-94032", storageBucket: "chat-94032.firebasestorage.app", messagingSenderId: "920803161623", appId: "1:920803161623:web:a2995a99c07b42af1d0e52" };
+        const app = initializeApp(firebaseConfig);
+        window.firebaseApps = [app];
+    </script>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="home.html" class="back-btn">→</a>
+            <span class="header-title">المنشورات</span>
+        </div>
+    </header>
+    
+    <main class="main-content">
+        <!-- Search Container -->
+        <div class="search-container">
+            <div class="search-input-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" id="searchInput" placeholder="بحث عن أصدقاء أو منشورات..." oninput="handleSearch(this.value)">
+            </div>
+            <div class="search-tabs">
+                <button class="search-tab active" data-tab="all" onclick="switchSearchTab('all')">الكل</button>
+                <button class="search-tab" data-tab="friends" onclick="switchSearchTab('friends')">الأصدقاء</button>
+                <button class="search-tab" data-tab="posts" onclick="switchSearchTab('posts')">المنشورات</button>
+            </div>
+            <div class="search-results" id="searchResults"></div>
+        </div>
+        
+        <!-- Create Post Card -->
+        <div class="create-post-card">
+            <div class="create-post-header">
+                <div class="create-post-avatar" id="currentUserAvatar">
+                    <span class="avatar-placeholder">👤</span>
+                </div>
+                <div class="create-post-input" onclick="openCreatePostModal()">
+                    ما الذي يدور في ذهنك؟
+                </div>
+            </div>
+            <div class="create-post-actions">
+                <button class="create-post-btn image" onclick="document.getElementById('postImageInput').click()">
+                    📷 صورة
+                </button>
+                <button class="create-post-btn image" onclick="openCreatePostModal()">
+                    ✍️ منشور جديد
+                </button>
+            </div>
+            <input type="file" id="postImageInput" accept="image/*" style="display:none;" onchange="previewPostImage(event)">
+        </div>
+        
+        <!-- Posts Container -->
+        <div id="postsContainer">
+            <div class="posts-loading">جاري تحميل المنشورات...</div>
+        </div>
+    </main>
+    
+    <!-- Create Post Modal -->
+    <div class="create-post-modal-overlay" id="createPostModal">
+        <div class="create-post-modal">
+            <div class="create-post-modal-header">
+                <span class="create-post-modal-title">إنشاء منشور</span>
+                <button class="create-post-modal-close" onclick="closeCreatePostModal()">✕</button>
+            </div>
+            <div class="create-post-modal-body">
+                <textarea id="postTextInput" placeholder="ما الذي يدور في ذهنك؟"></textarea>
+                <img id="postImagePreview" class="post-image-preview" alt="صورة المنشور">
+                <input type="hidden" id="postImageUrl" value="">
+                
+                <div class="privacy-selector">
+                    <div class="privacy-option active" data-privacy="public" onclick="selectPrivacy('public')">
+                        <span class="privacy-option-icon">🌐</span>
+                        <span class="privacy-option-label">عام</span>
+                    </div>
+                    <div class="privacy-option" data-privacy="friends" onclick="selectPrivacy('friends')">
+                        <span class="privacy-option-icon">👥</span>
+                        <span class="privacy-option-label">الأصدقاء</span>
+                    </div>
+                </div>
+            </div>
+            <div class="create-post-modal-footer">
+                <button class="submit-post-btn" id="submitPostBtn" onclick="submitPost()">نشر</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Post Menu (Delete) -->
+    <div class="post-menu" id="postMenu">
+        <button class="post-menu-item delete" onclick="deletePost()">
+            🗑️ حذف المنشور
+        </button>
+    </div>
+    
+    <nav class="footer-nav">
+        <a href="home.html" class="nav-item"><span class="nav-icon">🏠</span><span>الرئيسية</span></a>
+        <a href="posts.html" class="nav-item active"><span class="nav-icon">📝</span><span>المنشورات</span></a>
+        <a href="friends.html" class="nav-item"><span class="nav-icon">👥</span><span>الأصدقاء</span></a>
+        <a href="chat.html" class="nav-item"><span class="nav-icon">💬</span><span>الدردشة</span></a>
+        <a href="settings.html" class="nav-item"><span class="nav-icon">⚙️</span><span>الإعدادات</span></a>
+    </nav>
+
+    <!-- User Profile Modal -->
+    <div class="user-profile-overlay" id="userProfileModal" onclick="closeUserProfile(event)">
+        <div class="user-profile-modal" onclick="event.stopPropagation()">
+            <div class="user-profile-header">
+                <button class="user-profile-close" onclick="closeUserProfile()">✕</button>
+                <div class="user-profile-avatar" id="profileUserAvatar">
+                    <span class="avatar-placeholder">👤</span>
+                </div>
+            </div>
+            <div class="user-profile-body" id="userProfileBody">
+                <!-- Profile content will be loaded here -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast"><span>✓</span><span id="toastMessage">تم!</span></div>
+    
+    <script src="app.js"></script>
+    <script type="module">
+        import { getFirestore, collection, onSnapshot, query, orderBy, where, getDocs, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, getDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const db = getFirestore(window.firebaseApps[0]);
+        const auth = getAuth(window.firebaseApps[0]);
+
+        let currentUser = null;
+        let currentUserData = null;
+        let selectedPrivacy = 'public';
+        let currentDeletePostId = null;
+        let friendsList = [];
+        
+        // Temporary image for create post
+        let tempPostImage = null;
+
+        // Get current user
+        auth.onAuthStateChanged(async (user) => {
+            currentUser = user;
+            if (user) {
+                await loadCurrentUserData();
+                await loadFriendsList();
+                updateCurrentUserAvatar();
+                loadPosts();
+            }
+        });
+
+        // Load current user data
+        async function loadCurrentUserData() {
+            try {
+                const q = query(collection(db, 'users'), where('uid', '==', currentUser.uid));
+                const snapshot = await getDocs(q);
+                snapshot.forEach(doc => {
+                    currentUserData = { id: doc.id, ...doc.data() };
+                });
+            } catch (error) {
+                console.error("Error loading user data:", error);
+            }
+        }
+
+        // Load friends list
+        async function loadFriendsList() {
+            try {
+                const q = query(collection(db, 'friends'), where('userId', '==', currentUser.uid));
+                const snapshot = await getDocs(q);
+                friendsList = [];
+                snapshot.forEach(doc => {
+                    friendsList.push(doc.data().friendId);
+                });
+            } catch (error) {
+                console.error("Error loading friends:", error);
+            }
+        }
+
+        // Update current user avatar
+        function updateCurrentUserAvatar() {
+            const avatarEl = document.getElementById('currentUserAvatar');
+            if (!avatarEl || !currentUserData) return;
+            
+            if (currentUserData.avatar && currentUserData.avatar.length > 0) {
+                avatarEl.innerHTML = `<img src="${currentUserData.avatar}" alt="">`;
+            } else {
+                const initials = currentUserData.fullName ? currentUserData.fullName.split(' ').map(n => n[0]).join('').substring(0, 2) : '👤';
+                avatarEl.innerHTML = `<span class="avatar-placeholder">${initials}</span>`;
+            }
+        }
+
+        // Load posts
+        function loadPosts() {
+            const container = document.getElementById('postsContainer');
+            if (!container) return;
+
+            // Get all public posts + friends' posts
+            const postsRef = collection(db, 'posts');
+            const q = query(postsRef, orderBy('createdAt', 'desc'));
+
+            onSnapshot(q, async (snapshot) => {
+                let posts = [];
+                
+                for (const docSnap of snapshot.docs) {
+                    const post = { id: docSnap.id, ...docSnap.data() };
+                    
+                    // Filter based on privacy
+                    if (post.privacy === 'public') {
+                        posts.push(post);
+                    } else if (post.privacy === 'friends') {
+                        // Show friends' posts and own posts
+                        if (post.userId === currentUser?.uid || friendsList.includes(post.userId)) {
+                            posts.push(post);
+                        }
+                    }
+                }
+
+                if (posts.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-posts">
+                            <div class="empty-posts-icon">📝</div>
+                            <div class="empty-posts-title">لا توجد منشورات بعد</div>
+                            <div class="empty-posts-text">كن أول من ينشر!</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                for (const post of posts) {
+                    html += await renderPost(post);
+                }
+                
+                container.innerHTML = html;
+            }, (error) => {
+                console.error("Error loading posts:", error);
+                container.innerHTML = '<div class="posts-loading">حدث خطأ في تحميل المنشورات</div>';
+            });
+        }
+
+        // Render single post
+        async function renderPost(post) {
+            const userData = await getPostUserData(post.userId);
+            const likesCount = post.likes ? post.likes.length : 0;
+            const isLiked = currentUser && post.likes && post.likes.includes(currentUser.uid);
+            const isOwner = currentUser && post.userId === currentUser.uid;
+            
+            const initials = userData?.fullName ? userData.fullName.split(' ').map(n => n[0]).join('').substring(0, 2) : '👤';
+            const timeAgo = formatTimeAgo(post.createdAt);
+            
+            let avatarHtml = '';
+            if (userData?.avatar && userData.avatar.length > 0) {
+                avatarHtml = `<img src="${userData.avatar}" alt="">`;
+            } else {
+                avatarHtml = `<span class="avatar-placeholder">${initials}</span>`;
+            }
+            
+            const privacyLabel = post.privacy === 'public' ? 'عام' : 'الأصدقاء';
+            const privacyIcon = post.privacy === 'public' ? '🌐' : '👥';
+            
+            let imageHtml = '';
+            if (post.image && post.image.length > 0) {
+                imageHtml = `<img class="post-image" src="${post.image}" alt="صورة المنشور">`;
+            }
+            
+            const commentsHtml = await renderComments(post.id);
+            
+            return `
+                <div class="post-card" id="post-${post.id}">
+                    <div class="post-header">
+                        <div class="post-avatar" onclick="showUserProfile('${post.userId}')">${avatarHtml}</div>
+                        <div class="post-user-info">
+                            <div class="post-meta">
+                                <span>${timeAgo}</span>
+                                <span class="post-privacy ${post.privacy}">${privacyIcon} ${privacyLabel}</span>
+                            </div>
+                        </div>
+                        ${isOwner ? `<button class="post-menu-btn" onclick="showPostMenu('${post.id}')">⋮</button>` : ''}
+                    </div>
+                    <div class="post-content">
+                        <div class="post-text">${escapeHtml(post.text || '')}</div>
+                        ${imageHtml}
+                    </div>
+                    <div class="post-stats">
+                        <div class="post-likes-count">
+                            <span>${likesCount > 0 ? '❤️ ' + likesCount : ''}</span>
+                        </div>
+                        <div>${post.commentsCount || 0} تعليق</div>
+                    </div>
+                    <div class="post-actions">
+                        <button class="post-action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post.id}')">
+                            ${isLiked ? '❤️ معجب' : '🤍 إعجاب'}
+                        </button>
+                        <button class="post-action-btn" onclick="focusComment('${post.id}')">
+                            💬 تعليق
+                        </button>
+                    </div>
+                    ${commentsHtml}
+                </div>
+            `;
+        }
+
+        // Get post user data
+        async function getPostUserData(userId) {
+            try {
+                const q = query(collection(db, 'users'), where('uid', '==', userId));
+                const snapshot = await getDocs(q);
+                let userData = null;
+                snapshot.forEach(doc => {
+                    userData = { id: doc.id, ...doc.data() };
+                });
+                return userData;
+            } catch (error) {
+                console.error("Error loading user:", error);
+                return null;
+            }
+        }
+
+        // Render comments
+        async function renderComments(postId) {
+            try {
+                const commentsRef = collection(db, 'posts', postId, 'comments');
+                const q = query(commentsRef, orderBy('createdAt', 'asc'));
+                const snapshot = await getDocs(q);
+                
+                let commentsHtml = '';
+                
+                if (!snapshot.empty) {
+                    const commentsData = [];
+                    snapshot.forEach(doc => {
+                        commentsData.push({ id: doc.id, ...doc.data() });
+                    });
+                    
+                    // Limit to first 3 comments
+                    const displayComments = commentsData.slice(0, 3);
+                    
+                    for (const comment of displayComments) {
+                        const userData = await getPostUserData(comment.userId);
+                        const initials = userData?.fullName ? userData.fullName.split(' ').map(n => n[0]).join('').substring(0, 2) : '👤';
+                        const timeAgo = formatTimeAgo(comment.createdAt);
+                        const canEditComment = currentUser && comment.userId === currentUser.uid;
+                        
+                        let avatarHtml = '';
+                        if (userData?.avatar && userData.avatar.length > 0) {
+                            avatarHtml = `<img src="${userData.avatar}" alt="">`;
+                        } else {
+                            avatarHtml = `<span class="avatar-placeholder">${initials}</span>`;
+                        }
+                        
+                        commentsHtml += `
+                            <div class="comment">
+                                <div class="comment-avatar">${avatarHtml}</div>
+                                <div class="comment-content">
+                                    <div class="comment-user-name">${userData?.fullName || 'مستخدم'}</div>
+                                    <div class="comment-text" id="comment-text-${post.id}-${comment.id}">${escapeHtml(comment.text || '')}</div>
+                                    ${comment.isEdited ? '<span style="font-size: 10px; color: var(--text-muted);">(معدل)</span>' : ''}
+                                    <div class="comment-time">${timeAgo}</div>
+                                    ${canEditComment ? `
+                                    <div style="display: flex; gap: 8px; margin-top: 4px;">
+                                        <button onclick="editPostComment('${post.id}', '${comment.id}', '${escapeHtml(comment.text || '')}')" style="background: none; border: none; color: var(--text-muted); font-size: 11px; cursor: pointer; padding: 2px 4px;">✏️ تعديل</button>
+                                        <button onclick="deletePostComment('${post.id}', '${comment.id}')" style="background: none; border: none; color: var(--error); font-size: 11px; cursor: pointer; padding: 2px 4px;">🗑️ حذف</button>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                
+                return `
+                    <div class="post-comments">
+                        ${commentsHtml}
+                        <div class="comment-input-wrapper">
+                            <input type="text" class="comment-input" id="comment-input-${postId}" placeholder="اكتب تعليقاً..." onkeypress="handleCommentKeyPress(event, '${postId}')">
+                            <button class="comment-send-btn" onclick="submitComment('${postId}')">➤</button>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error("Error loading comments:", error);
+                return '';
+            }
+        }
+
+        // Format time ago
+        function formatTimeAgo(timestamp) {
+            if (!timestamp) return '';
+            
+            const date = timestamp.toDate ? timestamp.toDate() : new Date();
+            const now = new Date();
+            const diff = now - date;
+            
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+            
+            if (minutes < 1) return 'الآن';
+            if (minutes < 60) return 'منذ ' + minutes + 'د';
+            if (hours < 24) return 'منذ ' + hours + 'س';
+            if (days < 7) return 'منذ ' + days + 'ي';
+            
+            return date.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' });
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ==================== CREATE POST ====================
+        
+        window.openCreatePostModal = function() {
+            document.getElementById('postTextInput').value = '';
+            document.getElementById('postImagePreview').classList.remove('has-image');
+            document.getElementById('postImageUrl').value = '';
+            tempPostImage = null;
+            selectPrivacy('public');
+            document.getElementById('createPostModal').classList.add('active');
+        };
+
+        window.closeCreatePostModal = function() {
+            document.getElementById('createPostModal').classList.remove('active');
+        };
+
+        window.selectPrivacy = function(privacy) {
+            selectedPrivacy = privacy;
+            document.querySelectorAll('.privacy-option').forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.privacy === privacy);
+            });
+        };
+
+        window.previewPostImage = function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    tempPostImage = e.target.result;
+                    const preview = document.getElementById('postImagePreview');
+                    preview.src = e.target.result;
+                    preview.classList.add('has-image');
+                };
+                reader.readAsDataURL(file);
+            }
+            // Also open modal
+            openCreatePostModal();
+        };
+
+        window.submitPost = async function() {
+            const text = document.getElementById('postTextInput').value.trim();
+            const image = tempPostImage || document.getElementById('postImageUrl').value;
+            
+            if (!text && !image) {
+                showToast('يرجى كتابة نص أو إضافة صورة', 'error');
+                return;
+            }
+            
+            if (!currentUser || !currentUserData) {
+                showToast('يرجى تسجيل الدخول أولاً', 'error');
+                return;
+            }
+            
+            const btn = document.getElementById('submitPostBtn');
+            btn.disabled = true;
+            btn.textContent = 'جاري النشر...';
+            
+            try {
+                await addDoc(collection(db, 'posts'), {
+                    userId: currentUser.uid,
+                    userName: currentUserData.fullName,
+                    userAvatar: currentUserData.avatar || null,
+                    text: text,
+                    image: image || null,
+                    privacy: selectedPrivacy,
+                    likes: [],
+                    commentsCount: 0,
+                    createdAt: serverTimestamp()
+                });
+                
+                showToast('تم نشر المنشور بنجاح!');
+                closeCreatePostModal();
+                
+            } catch (error) {
+                console.error("Error creating post:", error);
+                showToast('فشل نشر المنشور', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'نشر';
+            }
+        };
+
+        // ==================== LIKE ====================
+        
+        window.toggleLike = async function(postId) {
+            if (!currentUser) {
+                showToast('يرجى تسجيل الدخول أولاً', 'error');
+                return;
+            }
+            
+            try {
+                const postRef = doc(db, 'posts', postId);
+                const postSnap = await getDoc(postRef);
+                
+                if (!postSnap.exists()) return;
+                
+                const postData = postSnap.data();
+                const likes = postData.likes || [];
+                
+                if (likes.includes(currentUser.uid)) {
+                    // Unlike
+                    await updateDoc(postRef, {
+                        likes: arrayRemove(currentUser.uid)
+                    });
+                } else {
+                    // Like
+                    await updateDoc(postRef, {
+                        likes: arrayUnion(currentUser.uid)
+                    });
+                }
+                
+            } catch (error) {
+                console.error("Error toggling like:", error);
+            }
+        };
+
+        // ==================== COMMENTS ====================
+        
+        window.focusComment = function(postId) {
+            const input = document.getElementById(`comment-input-${postId}`);
+            if (input) {
+                input.focus();
+            }
+        };
+
+        window.handleCommentKeyPress = function(event, postId) {
+            if (event.key === 'Enter') {
+                submitComment(postId);
+            }
+        };
+
+        window.submitComment = async function(postId) {
+            const input = document.getElementById(`comment-input-${postId}`);
+            const text = input.value.trim();
+            
+            if (!text) return;
+            
+            if (!currentUser || !currentUserData) {
+                showToast('يرجى تسجيل الدخول أولاً', 'error');
+                return;
+            }
+            
+            try {
+                // Add comment
+                await addDoc(collection(db, 'posts', postId, 'comments'), {
+                    userId: currentUser.uid,
+                    text: text,
+                    createdAt: serverTimestamp()
+                });
+                
+                // Update comments count
+                const postRef = doc(db, 'posts', postId);
+                const postSnap = await getDoc(postRef);
+                if (postSnap.exists()) {
+                    const currentCount = postSnap.data().commentsCount || 0;
+                    await updateDoc(postRef, { commentsCount: currentCount + 1 });
+                }
+                
+                input.value = '';
+                showToast('تم إضافة التعليق');
+                
+            } catch (error) {
+                console.error("Error adding comment:", error);
+                showToast('فشل إضافة التعليق', 'error');
+            }
+        };
+
+        // ==================== DELETE POST ====================
+        
+        window.showPostMenu = function(postId) {
+            currentDeletePostId = postId;
+            const menu = document.getElementById('postMenu');
+            const post = document.getElementById(`post-${postId}`);
+            
+            if (post && menu) {
+                const rect = post.querySelector('.post-menu-btn').getBoundingClientRect();
+                menu.style.top = rect.bottom + 'px';
+                menu.style.left = (rect.left - 100) + 'px';
+                menu.classList.add('show');
+            }
+            
+            // Close on outside click
+            setTimeout(() => {
+                document.addEventListener('click', closePostMenu);
+            }, 100);
+        };
+
+        window.closePostMenu = function() {
+            const menu = document.getElementById('postMenu');
+            if (menu) menu.classList.remove('show');
+            currentDeletePostId = null;
+            document.removeEventListener('click', closePostMenu);
+        };
+
+        window.deletePost = async function() {
+            if (!currentDeletePostId) return;
+            
+            if (!confirm('هل أنت متأكد من حذف هذا المنشور؟')) {
+                closePostMenu();
+                return;
+            }
+            
+            try {
+                await deleteDoc(doc(db, 'posts', currentDeletePostId));
+                showToast('تم حذف المنشور');
+                closePostMenu();
+            } catch (error) {
+                console.error("Error deleting post:", error);
+                showToast('فشل حذف المنشور', 'error');
+            }
+        };
+
+        // ==================== EDIT/DELETE COMMENTS ====================
+        
+        window.editPostComment = async function(postId, commentId, currentText) {
+            const newText = prompt('تعديل التعليق:', currentText);
+            if (!newText || newText.trim() === currentText) return;
+            
+            try {
+                await updateDoc(doc(db, 'posts', postId, 'comments', commentId), {
+                    text: newText.trim(),
+                    isEdited: true
+                });
+                showToast('تم تعديل التعليق');
+            } catch (error) {
+                console.error("Error editing comment:", error);
+                showToast('فشل تعديل التعليق', 'error');
+            }
+        };
+
+        window.deletePostComment = async function(postId, commentId) {
+            if (!confirm('هل أنت متأكد من حذف هذا التعليق؟')) return;
+            
+            try {
+                await deleteDoc(doc(db, 'posts', postId, 'comments', commentId));
+                
+                // Update comments count
+                const postRef = doc(db, 'posts', postId);
+                const postSnap = await getDoc(postRef);
+                if (postSnap.exists()) {
+                    const currentCount = postSnap.data().commentsCount || 0;
+                    await updateDoc(postRef, { commentsCount: Math.max(0, currentCount - 1) });
+                }
+                
+                showToast('تم حذف التعليق');
+            } catch (error) {
+                console.error("Error deleting comment:", error);
+                showToast('فشل حذف التعليق', 'error');
+            }
+        };
+
+        // Close modal on overlay click
+        document.getElementById('createPostModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCreatePostModal();
+            }
+        });
+
+        // ==================== SEARCH FUNCTIONS ====================
+        let currentSearchTab = 'all';
+        let searchResults = { users: [], posts: [] };
+
+        window.switchSearchTab = function(tab) {
+            currentSearchTab = tab;
+            document.querySelectorAll('.search-tab').forEach(t => {
+                t.classList.toggle('active', t.dataset.tab === tab);
+            });
+            displaySearchResults();
+        };
+
+        window.handleSearch = async function(searchTerm) {
+            const resultsContainer = document.getElementById('searchResults');
+            if (!searchTerm || searchTerm.length < 2) {
+                resultsContainer.innerHTML = '';
+                return;
+            }
+
+            try {
+                // Search users
+                const usersSnapshot = await getDocs(query(collection(db, 'users')));
+                const users = [];
+                usersSnapshot.forEach(doc => {
+                    const userData = doc.data();
+                    const fullName = (userData.fullName || '').toLowerCase();
+                    const username = (userData.username || '').toLowerCase();
+                    const search = searchTerm.toLowerCase();
+                    if (fullName.includes(search) || username.includes(search)) {
+                        users.push({ id: doc.id, ...userData });
+                    }
+                });
+
+                // Search posts
+                const postsSnapshot = await getDocs(query(collection(db, 'posts'), orderBy('createdAt', 'desc')));
+                const posts = [];
+                postsSnapshot.forEach(doc => {
+                    const postData = doc.data();
+                    const text = (postData.text || '').toLowerCase();
+                    if (text.includes(searchTerm.toLowerCase())) {
+                        posts.push({ id: doc.id, ...postData });
+                    }
+                });
+
+                searchResults = { users, posts };
+                displaySearchResults();
+            } catch (error) {
+                console.error("Search error:", error);
+            }
+        };
+
+        function displaySearchResults() {
+            const container = document.getElementById('searchResults');
+            let html = '';
+
+            if (currentSearchTab === 'all' || currentSearchTab === 'friends') {
+                if (searchResults.users.length > 0) {
+                    html += '<div style="margin-bottom: 16px;">';
+                    html += '<div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">أصدقاء</div>';
+                    searchResults.users.forEach(user => {
+                        const initials = user.fullName ? user.fullName.split(' ').map(n => n[0]).join('').substring(0, 2) : '?';
+                        const avatarHtml = user.avatar ? 
+                            `<img src="${user.avatar}" alt="">` : 
+                            `<span class="avatar-placeholder">${initials}</span>`;
+                        
+                        html += `
+                            <div class="search-result-item" onclick="showUserProfile('${user.uid}')">
+                                <div class="search-result-avatar">${avatarHtml}</div>
+                                <div class="search-result-info">
+                                    <div class="search-result-name">${escapeHtml(user.fullName || 'مستخدم')}</div>
+                                    <div class="search-result-username">@${escapeHtml(user.username || 'user')}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+            }
+
+            if (currentSearchTab === 'all' || currentSearchTab === 'posts') {
+                if (searchResults.posts.length > 0) {
+                    html += '<div>';
+                    html += '<div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">منشورات</div>';
+                    searchResults.posts.slice(0, 5).forEach(post => {
+                        html += `
+                            <div class="search-result-item" onclick="viewPost('${post.id}')">
+                                <div class="search-result-avatar" style="background: var(--primary); color: white;">📝</div>
+                                <div class="search-result-info">
+                                    <div class="search-result-name">${escapeHtml(post.text ? (post.text.substring(0, 50) + '...') : 'منشور')}</div>
+                                    <div class="search-result-username">${formatTimeAgo(post.createdAt)}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+            }
+
+            if (!html) {
+                html = '<div style="text-align: center; padding: 20px; color: var(--text-muted);">لا توجد نتائج</div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        window.viewPost = function(postId) {
+            document.getElementById('searchResults').innerHTML = '';
+            document.getElementById('searchInput').value = '';
+            const postElement = document.getElementById('post-' + postId);
+            if (postElement) {
+                postElement.scrollIntoView({ behavior: 'smooth' });
+                postElement.style.border = '2px solid var(--primary)';
+                setTimeout(() => {
+                    postElement.style.border = '';
+                }, 2000);
+            }
+        };
+
+        // ==================== USER PROFILE FUNCTIONS ====================
+        let selectedUserId = null;
+
+        window.showUserProfile = async function(userId) {
+            if (!userId || userId === currentUser?.uid) return;
+            
+            selectedUserId = userId;
+            
+            try {
+                const q = query(collection(db, 'users'), where('uid', '==', userId));
+                const snapshot = await getDocs(q);
+                
+                if (snapshot.empty) {
+                    showToast('المستخدم غير موجود', 'error');
+                    return;
+                }
+
+                let userData = null;
+                snapshot.forEach(doc => {
+                    userData = { id: doc.id, ...doc.data() };
+                });
+
+                const avatarEl = document.getElementById('profileUserAvatar');
+                if (userData.avatar && userData.avatar.length > 0) {
+                    avatarEl.innerHTML = `<img src="${userData.avatar}" alt="">`;
+                } else {
+                    const initials = userData.fullName ? userData.fullName.split(' ').map(n => n[0]).join('').substring(0, 2) : '?';
+                    avatarEl.innerHTML = `<span class="avatar-placeholder" style="font-size: 36px;">${initials}</span>`;
+                }
+
+                const isFriend = friendsList.includes(userId);
+                const isCurrentUser = currentUser && userId === currentUser.uid;
+
+                const postsQ = query(collection(db, 'posts'), where('userId', '==', userId));
+                const postsSnapshot = await getDocs(postsQ);
+                const postsCount = postsSnapshot.size;
+
+                let bodyHtml = `
+                    <div class="user-profile-name">${escapeHtml(userData.fullName || 'مستخدم')}</div>
+                    <div class="user-profile-username">@${escapeHtml(userData.username || 'user')}</div>
+                    
+                    <div class="user-profile-stats">
+                        <div class="user-profile-stat">
+                            <div class="user-profile-stat-value">${postsCount}</div>
+                            <div class="user-profile-stat-label">منشورات</div>
+                        </div>
+                    </div>
+                    
+                    <div class="user-profile-actions">
+                        ${!isCurrentUser ? `
+                            <button class="user-profile-btn message" onclick="messageUser('${userId}', '${escapeHtml(userData.fullName)}')">
+                                💬 مراسلة
+                            </button>
+                            <button class="user-profile-btn friend" onclick="${isFriend ? `unfriendUser('${userId}')` : `addFriend('${userId}')`}">
+                                ${isFriend ? '❌ إلغاء الصداقة' : '➕ إضافة صديق'}
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+
+                bodyHtml += '<div class="user-profile-posts">';
+                bodyHtml += '<div class="user-profile-posts-title">منشورات المستخدم</div>';
+                
+                if (postsCount > 0) {
+                    postsSnapshot.forEach(doc => {
+                        const post = doc.data();
+                        bodyHtml += `
+                            <div class="user-profile-post">
+                                <div class="user-profile-post-text">${escapeHtml(post.text || '')}</div>
+                                ${post.image ? `<img class="user-profile-post-image" src="${post.image}" alt="">` : ''}
+                                <div class="user-profile-post-meta">${formatTimeAgo(post.createdAt)}</div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    bodyHtml += '<div class="user-profile-empty-posts">لا توجد منشورات</div>';
+                }
+                
+                bodyHtml += '</div>';
+
+                document.getElementById('userProfileBody').innerHTML = bodyHtml;
+                document.getElementById('userProfileModal').classList.add('active');
+
+            } catch (error) {
+                console.error("Error loading profile:", error);
+                showToast('خطأ في تحميل الملف الشخصي', 'error');
+            }
+        };
+
+        window.closeUserProfile = function(event) {
+            if (event && event.target !== document.getElementById('userProfileModal')) return;
+            document.getElementById('userProfileModal').classList.remove('active');
+            selectedUserId = null;
+        };
+
+        window.messageUser = function(userId, userName) {
+            window.location.href = 'chat-friend.html?friend=' + userId + '&name=' + encodeURIComponent(userName);
+        };
+
+        window.addFriend = async function(userId) {
+            if (!currentUser) {
+                showToast('يرجى تسجيل الدخول أولاً', 'error');
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, 'friendRequests'), {
+                    fromUid: currentUser.uid,
+                    fromName: currentUserData.fullName,
+                    toUid: userId,
+                    status: 'pending',
+                    createdAt: serverTimestamp()
+                });
+                
+                showToast('تم إرسال طلب الصداقة');
+            } catch (error) {
+                console.error("Error adding friend:", error);
+                showToast('فشل إضافة الصديق', 'error');
+            }
+        };
+
+        window.unfriendUser = async function(userId) {
+            if (!confirm('هل أنت متأكد من إلغاء الصداقة؟')) return;
+
+            try {
+                const q = query(collection(db, 'friends'), where('userId', '==', currentUser.uid), where('friendId', '==', userId));
+                const snapshot = await getDocs(q);
+                
+                snapshot.forEach(async (doc) => {
+                    await deleteDoc(doc.ref);
+                });
+
+                showToast('تم إلغاء الصداقة');
+                showUserProfile(userId);
+            } catch (error) {
+                console.error("Error removing friend:", error);
+                showToast('فشل إلغاء الصداقة', 'error');
+            }
+        };
+
+        initTheme();
+    </script>
+</body>
+</html>
+

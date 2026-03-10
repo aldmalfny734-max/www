@@ -660,6 +660,142 @@
             justify-content: center;
         }
 
+        /* Generated Codes Section */
+        .generated-codes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .generated-code-item {
+            background: var(--background);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: all 0.3s;
+        }
+
+        .generated-code-item:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .generated-code-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .generated-code-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .generated-code-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .generated-code-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .generated-code-type {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .generated-code-badge {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .generated-code-badge.public {
+            background: rgba(2, 132, 199, 0.1);
+            color: var(--info);
+        }
+
+        .generated-code-badge.private {
+            background: rgba(217, 119, 6, 0.1);
+            color: var(--warning);
+        }
+
+        .generated-code-value {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface);
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .generated-code-value span {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: var(--primary);
+            font-family: 'Courier New', monospace;
+        }
+
+        .copy-code-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .copy-code-btn:hover {
+            background: var(--primary-light);
+        }
+
+        .generated-code-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .generated-code-empty-icon {
+            width: 70px;
+            height: 70px;
+            background: var(--surface-alt);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 16px;
+        }
+
+        .generated-code-empty-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
         /* Responsive */
         @media (max-width: 480px) {
             .main-content {
@@ -770,10 +906,21 @@
                 </button>
             </div>
         </div>
-<a href="dachbord.html" class="nav-item active">
-            <span class="nav-icon">⚙️</span>
-            <span>لوحة التحكم</span>
-        </a>
+
+        <!-- Generated Codes Section -->
+        <div class="icon-section" id="generatedCodesSection">
+            <div class="icon-section-header">
+                <div class="icon-section-icon">🔑</div>
+                <span class="icon-section-title">الكواد المولدة</span>
+            </div>
+            <div class="generated-codes-list" id="generatedCodesList">
+                <div class="generated-code-empty">
+                    <div class="generated-code-empty-icon">🔐</div>
+                    <div class="generated-code-empty-title">لا توجد غرف</div>
+                    <div style="font-size: 12px; margin-top: 8px;">أنشئ غرفة خاصة للحصول على كود</div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- Footer Navigation -->
@@ -782,11 +929,11 @@
             <span class="nav-icon">🏠</span>
             <span>الرئيسية</span>
         </a>
-        <a href="#" class="nav-item" onclick="showToast('المواقع')">
-            <span class="nav-icon">🌐</span>
-            <span>المواقع</span>
+        <a href="posts.html" class="nav-item">
+            <span class="nav-icon">📝</span>
+            <span>المنشورات</span>
         </a>
-        <a href="friends.html" class="nav-item" onclick="showToast('الأصدقاء')">
+        <a href="friends.html" class="nav-item">
             <span class="nav-icon">👥</span>
             <span>الأصدقاء</span>
         </a>
@@ -798,7 +945,6 @@
             <span class="nav-icon">⚙️</span>
             <span>الإعدادات</span>
         </a>
-    </nav>
 
     <!-- Confirm Dialog -->
     <div class="confirm-overlay" id="confirmOverlay">
@@ -1144,10 +1290,81 @@
             }, 3000);
         };
 
-        // Initialize
+// Initialize
         initTheme();
         renderCountries();
         loadUserData();
+        loadUserRooms();
+        
+        // Load rooms created by user (for generated codes section)
+        async function loadUserRooms() {
+            if (!currentUser) return;
+            
+            try {
+                const { getDocs, query, where, collection } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+                
+                const q = query(collection(db, 'chatRooms'), where('createdBy', '==', currentUser.uid));
+                const snapshot = await getDocs(q);
+                
+                const container = document.getElementById('generatedCodesList');
+                if (!container) return;
+                
+                if (snapshot.empty) {
+                    container.innerHTML = `
+                        <div class="generated-code-empty">
+                            <div class="generated-code-empty-icon">🔐</div>
+                            <div class="generated-code-empty-title">لا توجد غرف</div>
+                            <div style="font-size: 12px; margin-top: 8px;">أنشئ غرفة خاصة للحصول على كود</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = '';
+                snapshot.forEach((doc) => {
+                    const roomData = doc.data();
+                    const roomType = roomData.type || 'public';
+                    const isPrivate = roomType === 'private';
+                    const roomCode = roomData.code || '';
+                    const roomImage = roomData.image || '';
+                    
+                    const avatarHtml = roomImage ? 
+                        `<img src="${roomImage}" alt="${roomData.name}">` : 
+                        `<span style="font-size: 20px; color: white;">${isPrivate ? '🔐' : '👥'}</span>`;
+                    
+                    html += `
+                        <div class="generated-code-item">
+                            <div class="generated-code-avatar">${avatarHtml}</div>
+                            <div class="generated-code-info">
+                                <div class="generated-code-name">${roomData.name || 'غرفة'}</div>
+                                <div class="generated-code-type">
+                                    <span class="generated-code-badge ${roomType}">${isPrivate ? 'خاصة' : 'عام'}</span>
+                                </div>
+                            </div>
+                            ${isPrivate && roomCode ? `
+                                <div class="generated-code-value">
+                                    <span>${roomCode}</span>
+                                    <button class="copy-code-btn" onclick="copyRoomCode('${roomCode}')">📋 نسخ</button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading user rooms:', error);
+            }
+        }
+        
+        // Copy room code to clipboard
+        window.copyRoomCode = function(code) {
+            navigator.clipboard.writeText(code).then(() => {
+                showToast('تم نسخ الكود بنجاح!');
+            }).catch(() => {
+                showToast('فشل نسخ الكود', 'error');
+            });
+        };
     </script>
 </body>
 </html>

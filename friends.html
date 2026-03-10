@@ -4,845 +4,697 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>الأصدقاء</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Tajawal', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        :root {
-            --primary: #1e3a5f;
-            --primary-light: #2c5282;
-            --primary-dark: #152a45;
-            --secondary: #c9a227;
-            --background: #f8fafc;
-            --surface: #ffffff;
-            --surface-alt: #f1f5f9;
-            --text: #1e293b;
-            --text-light: #64748b;
-            --text-muted: #94a3b8;
-            --border: #e2e8f0;
-            --error: #dc2626;
-            --success: #059669;
-            --warning: #d97706;
-            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
-        }
-
-        [data-theme="dark"] {
-            --primary: #3b82f6;
-            --background: #0f172a;
-            --surface: #1e293b;
-            --surface-alt: #334155;
-            --text: #f8fafc;
-            --text-light: #cbd5e1;
-            --border: #334155;
-        }
-
-        body {
-            background-color: var(--background);
-            min-height: 100vh;
-            color: var(--text);
-            line-height: 1.6;
-            transition: background-color 0.3s ease;
-            padding-bottom: 80px;
-        }
-
-        /* Header */
-        .header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            padding: 16px 20px;
-            box-shadow: var(--shadow-lg);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            opacity: 0.1;
-        }
-
-        .header-content {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            z-index: 1;
-            position: relative;
-        }
-
-        .back-btn {
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-        }
-
-        .back-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .header-title {
-            color: white;
-            font-size: 18px;
-            font-weight: 700;
-        }
-
-        /* Main Content */
-        .main-content {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Stats Cards */
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-bottom: 24px;
-        }
-
-        .stat-card {
-            background: var(--surface);
-            border-radius: 12px;
-            padding: 12px 8px;
-            text-align: center;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .stat-card.active {
-            border-color: var(--primary);
-            background: rgba(30, 58, 95, 0.1);
-        }
-
-        [data-theme="dark"] .stat-card.active {
-            background: rgba(59, 130, 246, 0.2);
-        }
-
-        .stat-icon {
-            font-size: 24px;
-            margin-bottom: 4px;
-        }
-
-        .stat-label {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-light);
-        }
-
-        .stat-count {
-            font-size: 18px;
-            font-weight: 800;
-            color: var(--primary);
-        }
-
-        /* Tab Content */
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Friends List */
-        .friends-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .friend-item {
-            background: var(--surface);
-            border-radius: 16px;
-            padding: 16px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-            transition: all 0.3s;
-        }
-
-        .friend-item:hover {
-            transform: translateX(-4px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--primary-light);
-        }
-
-        .friend-avatar {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 3px solid var(--border);
-            flex-shrink: 0;
-            background: var(--surface-alt);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .friend-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .friend-avatar-placeholder {
-            font-size: 24px;
-        }
-
-        .friend-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .friend-name {
-            font-size: 15px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .friend-bio {
-            font-size: 13px;
-            color: var(--text-light);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .friend-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .action-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-
-        .action-btn.message {
-            background: var(--primary);
-            color: white;
-        }
-
-        .action-btn.message:hover {
-            background: var(--primary-light);
-        }
-
-        .action-btn.block {
-            background: rgba(220, 38, 38, 0.1);
-            color: var(--error);
-        }
-
-        .action-btn.block:hover {
-            background: var(--error);
-            color: white;
-        }
-
-        .action-btn.unblock {
-            background: rgba(5, 150, 105, 0.1);
-            color: var(--success);
-        }
-
-        .action-btn.unblock:hover {
-            background: var(--success);
-            color: white;
-        }
-
-        .action-btn.remove {
-            background: rgba(220, 38, 38, 0.1);
-            color: var(--error);
-        }
-
-        .action-btn.remove:hover {
-            background: var(--error);
-            color: white;
-        }
-
-        .action-btn.accept {
-            background: var(--success);
-            color: white;
-        }
-
-        .action-btn.accept:hover {
-            background: #047857;
-        }
-
-        .action-btn.decline {
-            background: rgba(220, 38, 38, 0.1);
-            color: var(--error);
-        }
-
-        .action-btn.decline:hover {
-            background: var(--error);
-            color: white;
-        }
-
-        /* Pending Request */
-        .pending-item {
-            background: var(--surface);
-            border-radius: 16px;
-            padding: 16px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-        }
-
-        .pending-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .pending-btn {
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: none;
-            font-family: 'Tajawal', sans-serif;
-        }
-
-        .pending-btn.accept {
-            background: var(--success);
-            color: white;
-        }
-
-        .pending-btn.accept:hover {
-            background: #047857;
-        }
-
-        .pending-btn.decline {
-            background: var(--surface-alt);
-            color: var(--text);
-            border: 1px solid var(--border);
-        }
-
-        .pending-btn.decline:hover {
-            background: var(--error);
-            color: white;
-            border-color: var(--error);
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-muted);
-        }
-
-        .empty-icon {
-            width: 80px;
-            height: 80px;
-            background: var(--surface-alt);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            margin: 0 auto 20px;
-        }
-
-        .empty-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 8px;
-        }
-
-        /* Search Box */
-        .search-container {
-            margin-bottom: 20px;
-        }
-
-        .search-box {
-            position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 14px 16px 14px 48px;
-            background: var(--surface);
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            color: var(--text);
-            font-size: 15px;
-            outline: none;
-            transition: all 0.3s;
-            font-family: 'Tajawal', sans-serif;
-        }
-
-        .search-input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-            font-size: 18px;
-        }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            top: 90px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-100px);
-            background: var(--success);
-            color: white;
-            padding: 14px 28px;
-            border-radius: 10px;
-            font-weight: 600;
-            box-shadow: var(--shadow-xl);
-            z-index: 9999;
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-
-        /* Footer Navigation */
-        .footer-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--surface);
-            border-top: 1px solid var(--border);
-            padding: 12px 20px 20px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            text-decoration: none;
-            color: var(--text-muted);
-            font-size: 11px;
-            font-weight: 500;
-            transition: all 0.3s;
-            padding: 4px 12px;
-            border-radius: 12px;
-        }
-
-        .nav-item:hover, .nav-item.active {
-            color: var(--primary);
-        }
-
-        .nav-item.active {
-            background: rgba(30, 58, 95, 0.1);
-        }
-
-        .nav-icon {
-            font-size: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Responsive */
-        @media (max-width: 480px) {
-            .stats-row {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .main-content {
-                padding: 16px;
-            }
-        }
+        body { padding-bottom: 80px; }
+        .friend-item { background: var(--surface); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow); border: 1px solid var(--border); transition: all 0.3s; cursor: pointer; }
+        .friend-item:hover { transform: translateX(-4px); box-shadow: var(--shadow-lg); }
+        .friend-avatar { width: 56px; height: 56px; border-radius: 50%; overflow: hidden; border: 3px solid var(--border); flex-shrink: 0; background: var(--surface-alt); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: var(--primary); }
+        .friend-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .friend-info { flex: 1; min-width: 0; }
+        .friend-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+        .friend-bio { font-size: 13px; color: var(--text-light); }
+        .friend-actions { display: flex; gap: 8px; }
+        .action-btn { width: 36px; height: 36px; border-radius: 10px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: all 0.3s; }
+        .action-btn.message { background: var(--primary); color: white; }
+        .action-btn.block { background: rgba(220,38,38,0.1); color: var(--error); }
+        .action-btn.add { background: var(--success); color: white; }
+        .action-btn.pending { background: var(--surface-alt); color: var(--text-muted); }
+        .pending-actions { display: flex; flex-direction: column; gap: 8px; }
+        .pending-btn { padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: none; }
+        .pending-btn.accept { background: var(--success); color: white; }
+        .pending-btn.decline { background: var(--surface-alt); color: var(--text); border: 1px solid var(--border); }
+        
+        /* Request Tabs */
+        .request-tabs { display: flex; gap: 8px; margin-bottom: 16px; background: var(--surface); padding: 8px; border-radius: 12px; }
+        .request-tab { flex: 1; padding: 12px; text-align: center; border-radius: 8px; font-weight: 600; cursor: pointer; color: var(--text-light); background: transparent; border: none; font-size: 14px; }
+        .request-tab.active { background: var(--primary); color: white; }
     </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        const firebaseConfig = { apiKey: "AIzaSyDVP5IRHetBo7JDSRLteQOFX4fhsts3ur0", authDomain: "chat-94032.firebaseapp.com", projectId: "chat-94032", storageBucket: "chat-94032.firebasestorage.app", messagingSenderId: "920803161623", appId: "1:920803161623:web:a2995a99c07b42af1d0e52" };
+        const app = initializeApp(firebaseConfig);
+        window.firebaseApps = [app];
+    </script>
 </head>
 <body>
-
-    <!-- Header -->
     <header class="header">
         <div class="header-content">
             <a href="home.html" class="back-btn">→</a>
             <span class="header-title">الأصدقاء</span>
         </div>
     </header>
-
-    <!-- Main Content -->
     <main class="main-content">
-
-        <!-- Stats Cards -->
         <div class="stats-row">
-            <div class="stat-card active" onclick="switchTab('followers', this)">
-                <div class="stat-icon">👥</div>
-                <div class="stat-label">المتابعين</div>
-                <div class="stat-count" id="followersCount">12</div>
-            </div>
-            <div class="stat-card" onclick="switchTab('following', this)">
-                <div class="stat-icon">👤</div>
-                <div class="stat-label">اتابعهم</div>
-                <div class="stat-count" id="followingCount">8</div>
-            </div>
-            <div class="stat-card" onclick="switchTab('blocked', this)">
-                <div class="stat-icon">🚫</div>
-                <div class="stat-label">المحظورين</div>
-                <div class="stat-count" id="blockedCount">2</div>
-            </div>
-            <div class="stat-card" onclick="switchTab('pending', this)">
-                <div class="stat-icon">⏳</div>
-                <div class="stat-label">الطلبات</div>
-                <div class="stat-count" id="pendingCount">5</div>
+            <div class="stat-card" onclick="switchFriendsTab('all', this)" id="tab-btn-all"><div class="stat-icon">🌐</div><div class="stat-label">الجميع</div><div class="stat-count" id="allUsersCount">0</div></div>
+            <div class="stat-card active" onclick="switchFriendsTab('friends', this)" id="tab-btn-friends"><div class="stat-icon">👥</div><div class="stat-label">الأصدقاء</div><div class="stat-count" id="friendsCount">0</div></div>
+            <div class="stat-card" onclick="switchFriendsTab('requests', this)" id="tab-btn-requests"><div class="stat-icon">📩</div><div class="stat-label">الطلبات</div><div class="stat-count" id="requestsCount">0</div></div>
+        <div class="stat-card" onclick="switchFriendsTab('sent', this)" id="tab-btn-sent"><div class="stat-icon">📤</div><div class="stat-label">المرسلة</div><div class="stat-count" id="sentCount">0</div></div>
+        </div>
+        
+        <!-- All Users Tab -->
+        <div class="tab-content" id="tab-all">
+            <div class="chat-list" id="allUsersList">
+                <div class="empty-state"><div class="empty-icon">🌐</div><div class="empty-title">جاري التحميل...</div></div>
             </div>
         </div>
-
-        <!-- Search -->
-        <div class="search-container">
-            <div class="search-box">
-                <input type="text" class="search-input" id="searchInput" placeholder="البحث في الأصدقاء..." oninput="searchFriends()">
-                <span class="search-icon">🔍</span>
+        
+        <!-- Friends Tab -->
+        <div class="tab-content active" id="tab-friends">
+            <div class="chat-list" id="friendsList">
+                <div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">لا يوجد أصدقاء بعد</div></div>
             </div>
         </div>
-
-        <!-- Followers Section -->
-        <div class="tab-content active" id="tab-followers">
-            <div class="friends-list" id="followersList">
-                <!-- سيتم إنشاؤها بواسطة JavaScript -->
+        
+        <!-- Requests Tab -->
+        <div class="tab-content" id="tab-requests">
+            <div class="request-tabs">
+                <button class="request-tab active" onclick="switchRequestTab('received', this)" id="request-tab-received">الطلبات المستلمة</button>
+                <button class="request-tab" onclick="switchRequestTab('sent', this)" id="request-tab-sent-requests">الطلبات المرسلة</button>
+            </div>
+            <div class="chat-list" id="requestsList">
+                <div class="empty-state"><div class="empty-icon">📩</div><div class="empty-title">لا توجد طلبات</div></div>
             </div>
         </div>
-
-        <!-- Following Section -->
-        <div class="tab-content" id="tab-following">
-            <div class="friends-list" id="followingList">
-                <!-- سيتم إنشاؤها بواسطة JavaScript -->
+        
+        <!-- Sent Requests Tab -->
+        <div class="tab-content" id="tab-sent">
+            <div class="chat-list" id="sentList">
+                <div class="empty-state"><div class="empty-icon">📤</div><div class="empty-title">لا توجد طلبات مرسلة</div></div>
             </div>
         </div>
-
-        <!-- Blocked Section -->
-        <div class="tab-content" id="tab-blocked">
-            <div class="friends-list" id="blockedList">
-                <!-- سيتم إنشاؤها بواسطة JavaScript -->
-            </div>
-        </div>
-
-        <!-- Pending Section -->
-        <div class="tab-content" id="tab-pending">
-            <div class="friends-list" id="pendingList">
-                <!-- سيتم إنشاؤها بواسطة JavaScript -->
-            </div>
-        </div>
-
     </main>
-
-    <!-- Footer Navigation -->
-    <nav class="footer-nav">
-        <a href="home.html" class="nav-item">
-            <span class="nav-icon">🏠</span>
-            <span>الرئيسية</span>
-        </a>
-        <a href="#" class="nav-item" onclick="showToast('المواقع')">
-            <span class="nav-icon">🌐</span>
-            <span>المواقع</span>
-        </a>
-        <a href="friends.html" class="nav-item active">
-            <span class="nav-icon">👥</span>
-            <span>الأصدقاء</span>
-        </a>
-        <a href="chat.html" class="nav-item">
-            <span class="nav-icon">💬</span>
-            <span>الدردشة</span>
-        </a>
-        <a href="settings.html" class="nav-item">
-            <span class="nav-icon">⚙️</span>
-            <span>الإعدادات</span>
-        </a>
-    </nav>
-
-    <!-- Toast -->
-    <div class="toast" id="toast">
-        <span>✓</span>
-        <span id="toastMessage">تم بنجاح!</span>
+    
+    <!-- Profile Modal -->
+    <div class="profile-modal-overlay" id="profileModal">
+        <div class="profile-modal">
+            <div class="profile-modal-header">
+                <button class="profile-modal-close" onclick="closeProfileModal()">✕</button>
+                <div class="profile-modal-avatar" id="profileModalAvatar">
+                    <span class="avatar-placeholder">👤</span>
+                </div>
+            </div>
+            <div class="profile-modal-body">
+                <div class="profile-modal-name" id="profileModalName">...</div>
+                <div class="profile-modal-username" id="profileModalUsername">@...</div>
+                <div class="profile-modal-stats">
+                    <div class="profile-modal-stat">
+                        <span class="profile-modal-stat-value" id="profileFriendsCount">0</span>
+                        <span class="profile-modal-stat-label">الأصدقاء</span>
+                    </div>
+                </div>
+                <div class="profile-modal-actions" id="profileActions">
+                    <!-- Buttons will be added dynamically -->
+                </div>
+            </div>
+        </div>
     </div>
+    
+    <nav class="footer-nav">
+        <a href="home.html" class="nav-item"><span class="nav-icon">🏠</span><span>الرئيسية</span></a>
+        <a href="posts.html" class="nav-item"><span class="nav-icon">📝</span><span>المنشورات</span></a>
+        <a href="friends.html" class="nav-item active"><span class="nav-icon">👥</span><span>الأصدقاء</span></a>
+        <a href="chat.html" class="nav-item"><span class="nav-icon">💬</span><span>الدردشة</span></a>
+        <a href="settings.html" class="nav-item"><span class="nav-icon">⚙️</span><span>الإعدادات</span></a>
+    </nav>
+    <div class="toast" id="toast"><span>✓</span><span id="toastMessage">تم!</span></div>
+    <script src="app.js"></script>
+    <script type="module">
+        import { getFirestore, collection, addDoc, getDocs, onSnapshot, query, where, orderBy, doc, updateDoc, deleteDoc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    <script>
-        // Data
-        const followers = [
-            { id: 1, name: 'الشيخ أحمد', bio: 'طالب علم', avatar: 'https://i.pravatar.cc/150?img=11' },
-            { id: 2, name: 'محمد علي', bio: 'محب للعلم', avatar: 'https://i.pravatar.cc/150?img=12' },
-            { id: 3, name: 'عبدالله محمد', bio: 'طالب جامعي', avatar: 'https://i.pravatar.cc/150?img=13' },
-            { id: 4, name: 'خالد عمر', bio: 'مهندس', avatar: 'https://i.pravatar.cc/150?img=14' },
-            { id: 5, name: 'أحمد صالح', bio: 'تاجر', avatar: 'https://i.pravatar.cc/150?img=15' },
-            { id: 6, name: 'سعيد الغامدي', bio: 'معلم', avatar: 'https://i.pravatar.cc/150?img=16' },
-            { id: 7, name: 'ياسر الحربي', bio: 'طبيب', avatar: 'https://i.pravatar.cc/150?img=17' },
-            { id: 8, name: 'عمر الفارسي', bio: 'محامٍ', avatar: 'https://i.pravatar.cc/150?img=18' },
-            { id: 9, name: 'سالم المطيري', bio: 'مستشار', avatar: 'https://i.pravatar.cc/150?img=19' },
-            { id: 10, name: 'فهد العنزي', bio: 'رجل أعمال', avatar: 'https://i.pravatar.cc/150?img=20' },
-            { id: 11, name: 'تركي الشمري', bio: 'كاتب', avatar: 'https://i.pravatar.cc/150?img=21' },
-            { id: 12, name: 'ناصر العتيبي', bio: 'مؤلف', avatar: 'https://i.pravatar.cc/150?img=22' }
-        ];
+        const db = getFirestore(window.firebaseApps[0]);
+        const auth = getAuth(window.firebaseApps[0]);
 
-        const following = [
-            { id: 101, name: 'الشيخ محمد العريفي', bio: 'داعية إسلامي', avatar: 'https://i.pravatar.cc/150?img=11' },
-            { id: 102, name: 'الشيخ صالح المغامسي', bio: 'إمام وخطيب', avatar: 'https://i.pravatar.cc/150?img=13' },
-            { id: 103, name: 'الدكتور عزام', bio: 'أكاديمي', avatar: 'https://i.pravatar.cc/150?img=15' },
-            { id: 104, name: 'الشيخ الشريم', bio: 'قارئ قرآن', avatar: 'https://i.pravatar.cc/150?img=17' },
-            { id: 105, name: 'الشيخ السديس', bio: 'خطيب ومفسر', avatar: 'https://i.pravatar.cc/150?img=19' },
-            { id: 106, name: 'أحمد الط示范区', bio: 'مستشار قانوني', avatar: 'https://i.pravatar.cc/150?img=21' },
-            { id: 107, name: 'محمد الحكمي', bio: 'باحث', avatar: 'https://i.pravatar.cc/150?img=23' },
-            { id: 108, name: 'علي الزهراني', bio: 'داعية', avatar: 'https://i.pravatar.cc/150?img=25' }
-        ];
+        let currentUser = null;
+        let currentUserData = null;
+        let allUsersData = [];
+        let friendsData = [];
+        let pendingRequests = [];
+        let sentRequests = [];
+        let selectedProfileUser = null;
+        let currentRequestTab = 'received';
 
-        const blocked = [
-            { id: 201, name: 'مستخدم 1', bio: 'محظور', avatar: 'https://i.pravatar.cc/150?img=30' },
-            { id: 202, name: 'مستخدم 2', bio: 'محظور', avatar: 'https://i.pravatar.cc/150?img=31' }
-        ];
-
-        const pending = [
-            { id: 301, name: 'أحمد جديد', bio: 'يريد متابعتك', avatar: 'https://i.pravatar.cc/150?img=40' },
-            { id: 302, name: 'محمد طلب', bio: 'يريد متابعتك', avatar: 'https://i.pravatar.cc/150?img=41' },
-            { id: 303, name: 'علي يريد', bio: 'يريد متابعتك', avatar: 'https://i.pravatar.cc/150?img=42' },
-            { id: 304, name: 'سعيد يتابع', bio: 'يريد متابعتك', avatar: 'https://i.pravatar.cc/150?img=43' },
-            { id: 305, name: 'فهد等待', bio: 'يريد متابعتك', avatar: 'https://i.pravatar.cc/150?img=44' }
-        ];
-
-        // Render Functions
-        function renderFollowers() {
-            const container = document.getElementById('followersList');
-            if (followers.length === 0) {
-                container.innerHTML = getEmptyState('لا يوجد متابعين');
-                return;
+        // Get current user
+        auth.onAuthStateChanged(async (user) => {
+            currentUser = user;
+            if (user) {
+                await loadCurrentUserData();
+                loadAllData();
             }
-            
-            let html = '';
-            for (let i = 0; i < followers.length; i++) {
-                const friend = followers[i];
-                html += renderFriendItem(friend, 'followers');
-            }
-            container.innerHTML = html;
-        }
-
-        function renderFollowing() {
-            const container = document.getElementById('followingList');
-            if (following.length === 0) {
-                container.innerHTML = getEmptyState('لا تتبع أحداً');
-                return;
-            }
-            
-            let html = '';
-            for (let i = 0; i < following.length; i++) {
-                const friend = following[i];
-                html += renderFriendItem(friend, 'following');
-            }
-            container.innerHTML = html;
-        }
-
-        function renderBlocked() {
-            const container = document.getElementById('blockedList');
-            if (blocked.length === 0) {
-                container.innerHTML = getEmptyState('لا يوجد محظورين');
-                return;
-            }
-            
-            let html = '';
-            for (let i = 0; i < blocked.length; i++) {
-                const friend = blocked[i];
-                html += '<div class="friend-item">' +
-                    '<div class="friend-avatar">' +
-                    '<img src="' + friend.avatar + '" alt="">' +
-                    '</div>' +
-                    '<div class="friend-info">' +
-                    '<div class="friend-name">' + friend.name + '</div>' +
-                    '<div class="friend-bio">' + friend.bio + '</div>' +
-                    '</div>' +
-                    '<div class="friend-actions">' +
-                    '<button class="action-btn unblock" onclick="unblockUser(' + friend.id + ')" title="إلغاء الحظر">🔓</button>' +
-                    '</div>' +
-                    '</div>';
-            }
-            container.innerHTML = html;
-        }
-
-        function renderPending() {
-            const container = document.getElementById('pendingList');
-            if (pending.length === 0) {
-                container.innerHTML = getEmptyState('لا توجد طلبات');
-                return;
-            }
-            
-            let html = '';
-            for (let i = 0; i < pending.length; i++) {
-                const friend = pending[i];
-                html += '<div class="friend-item">' +
-                    '<div class="friend-avatar">' +
-                    '<img src="' + friend.avatar + '" alt="">' +
-                    '</div>' +
-                    '<div class="friend-info">' +
-                    '<div class="friend-name">' + friend.name + '</div>' +
-                    '<div class="friend-bio">' + friend.bio + '</div>' +
-                    '</div>' +
-                    '<div class="pending-actions">' +
-                    '<button class="pending-btn accept" onclick="acceptRequest(' + friend.id + ')">✓ قبول</button>' +
-                    '<button class="pending-btn decline" onclick="declineRequest(' + friend.id + ')">✕ رفض</button>' +
-                    '</div>' +
-                    '</div>';
-            }
-            container.innerHTML = html;
-        }
-
-        function renderFriendItem(friend, type) {
-            return '<div class="friend-item">' +
-                '<div class="friend-avatar">' +
-                '<img src="' + friend.avatar + '" alt="">' +
-                '</div>' +
-                '<div class="friend-info">' +
-                '<div class="friend-name">' + friend.name + '</div>' +
-                '<div class="friend-bio">' + friend.bio + '</div>' +
-                '</div>' +
-                '<div class="friend-actions">' +
-                '<button class="action-btn message" onclick="sendMessage()" title="مراسلة">💬</button>' +
-                '<button class="action-btn block" onclick="blockUser(' + friend.id + ')" title="حظر">🚫</button>' +
-                '</div>' +
-                '</div>';
-        }
-
-        function getEmptyState(message) {
-            return '<div class="empty-state">' +
-                '<div class="empty-icon">👥</div>' +
-                '<div class="empty-title">' + message + '</div>' +
-                '</div>';
-        }
-
-        // Tab Switching
-        function switchTab(tabName, card) {
-            // Update cards
-            document.querySelectorAll('.stat-card').forEach(function(c) {
-                c.classList.remove('active');
-            });
-            card.classList.add('active');
-            
-            // Update content
-            document.querySelectorAll('.tab-content').forEach(function(content) {
-                content.classList.remove('active');
-            });
-            document.getElementById('tab-' + tabName).classList.add('active');
-        }
-
-        // Actions
-        function sendMessage() {
-            showToast('جاري فتح المحادثة...');
-        }
-
-        function blockUser(id) {
-            showToast('تم حظر المستخدم');
-        }
-
-        function unblockUser(id) {
-            showToast('تم إلغاء الحظر');
-        }
-
-        function acceptRequest(id) {
-            showToast('تم قبول الطلب');
-            // Remove from pending
-            const index = pending.findIndex(function(p) { return p.id === id; });
-            if (index > -1) {
-                pending.splice(index, 1);
-                document.getElementById('pendingCount').textContent = pending.length;
-                renderPending();
-            }
-        }
-
-        function declineRequest(id) {
-            showToast('تم رفض الطلب');
-            // Remove from pending
-            const index = pending.findIndex(function(p) { return p.id === id; });
-            if (index > -1) {
-                pending.splice(index, 1);
-                document.getElementById('pendingCount').textContent = pending.length;
-                renderPending();
-            }
-        }
-
-        // Search
-        function searchFriends() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            if (searchTerm) {
-                showToast('البحث عن: ' + searchTerm);
-            }
-        }
-
-        // Toast
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toastMessage');
-            
-            toastMessage.textContent = message;
-            toast.classList.add('show');
-            
-            setTimeout(function() {
-                toast.classList.remove('show');
-            }, 3000);
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            renderFollowers();
-            renderFollowing();
-            renderBlocked();
-            renderPending();
         });
+
+        // Load current user data
+        async function loadCurrentUserData() {
+            try {
+                const q = query(collection(db, 'users'), where('uid', '==', currentUser.uid));
+                const snapshot = await getDocs(q);
+                snapshot.forEach(doc => {
+                    currentUserData = { id: doc.id, ...doc.data() };
+                });
+            } catch (error) {
+                console.error("Error loading user data:", error);
+            }
+        }
+
+        // Switch main tabs
+        window.switchFriendsTab = function(tabName, element) {
+            document.querySelectorAll('.stats-row .stat-card').forEach(c => c.classList.remove('active'));
+            element.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+            
+            if (tabName === 'requests') {
+                renderRequests();
+            }
+        };
+
+        // Switch request sub-tabs
+        window.switchRequestTab = function(tabName, element) {
+            currentRequestTab = tabName;
+            document.querySelectorAll('.request-tab').forEach(c => c.classList.remove('active'));
+            element.classList.add('active');
+            renderRequests();
+        };
+
+        // Load all data
+        function loadAllData() {
+            loadAllUsers();
+            loadFriends();
+            loadPendingRequests();
+            loadSentRequests();
+        }
+
+        // Load all users except current user
+        function loadAllUsers() {
+            const usersRef = collection(db, 'users');
+            const q = query(usersRef, orderBy('createdAt', 'desc'));
+
+            onSnapshot(q, (snapshot) => {
+                allUsersData = [];
+                snapshot.forEach(doc => {
+                    const userData = doc.data();
+                    if (!currentUser || userData.uid !== currentUser.uid) {
+                        allUsersData.push({ id: doc.id, ...userData });
+                    }
+                });
+
+                // Filter out friends and sent requests
+                if (currentUser) {
+                    allUsersData = allUsersData.filter(user => {
+                        const isFriend = friendsData.some(f => f.friendId === user.uid);
+                        const hasSentRequest = sentRequests.some(r => r.toUid === user.uid);
+                        const hasPendingRequest = pendingRequests.some(r => r.fromUid === user.uid);
+                        return !isFriend && !hasSentRequest && !hasPendingRequest;
+                    });
+                }
+
+                document.getElementById('allUsersCount').textContent = allUsersData.length;
+                renderAllUsers();
+            });
+        }
+
+        // Render all users
+        function renderAllUsers() {
+            const container = document.getElementById('allUsersList');
+            if (!container) return;
+
+            if (allUsersData.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">لا يوجد مستخدمين</div></div>';
+                return;
+            }
+
+            let html = '';
+            allUsersData.forEach(user => {
+                const initials = user.fullName ? user.fullName.split(' ').map(n => n[0]).join('').substring(0, 2) : '👤';
+                
+                html += `
+                    <div class="friend-item" onclick="openUserProfile('${user.uid}', '${user.fullName || ''}', '${user.username || ''}', '${user.avatar || ''}', '${user.country || ''}', 'all')">
+                        <div class="friend-avatar">${initials}</div>
+                        <div class="friend-info">
+                            <div class="friend-name">${user.fullName || user.username || 'مستخدم'}</div>
+                            <div class="friend-bio">@${user.username || ''} • ${user.country || ''}</div>
+                        </div>
+                        <div class="friend-actions" onclick="event.stopPropagation()">
+                            <button class="action-btn add" onclick="sendFriendRequest('${user.uid}', '${user.fullName}', '${user.username}', '${user.avatar || ''}')" title="إضافة صديق">➕</button>
+                            <button class="action-btn message" onclick="openChat('${user.uid}', '${user.fullName}')" title="دردشة">💬</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Send friend request
+        window.sendFriendRequest = async function(userUid, userName, username, avatar) {
+            if (!currentUser || !currentUserData) {
+                showToast('يرجى تسجيل الدخول أولاً', 'error');
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, 'friendRequests'), {
+                    fromUid: currentUser.uid,
+                    fromName: currentUserData.fullName,
+                    fromUsername: currentUserData.username,
+                    fromAvatar: currentUserData.avatar || null,
+                    toUid: userUid,
+                    toName: userName,
+                    toUsername: username,
+                    toAvatar: avatar || null,
+                    status: 'pending',
+                    createdAt: serverTimestamp()
+                });
+
+                showToast('تم إرسال طلب الصداقة');
+                loadSentRequests();
+                loadAllUsers();
+            } catch (error) {
+                console.error("Error sending friend request:", error);
+                showToast('فشل إرسال الطلب', 'error');
+            }
+        };
+
+        // Load friends
+        function loadFriends() {
+            if (!currentUser) return;
+
+            const q = query(collection(db, 'friends'), where('userId', '==', currentUser.uid));
+            
+            onSnapshot(q, (snapshot) => {
+                friendsData = [];
+                snapshot.forEach(doc => {
+                    friendsData.push({ id: doc.id, ...doc.data() });
+                });
+
+                document.getElementById('friendsCount').textContent = friendsData.length;
+                renderFriends();
+            });
+        }
+
+        // Render friends
+        function renderFriends() {
+            const container = document.getElementById('friendsList');
+            if (!container) return;
+
+            if (friendsData.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">لا يوجد أصدقاء بعد</div></div>';
+                return;
+            }
+
+            let html = '';
+            friendsData.forEach(friend => {
+                const initials = friend.friendName ? friend.friendName.split(' ').map(n => n[0]).join('').substring(0, 2) : '👤';
+                
+                html += `
+                    <div class="friend-item" onclick="openUserProfile('${friend.friendId}', '${friend.friendName}', '${friend.friendUsername}', '${friend.friendAvatar || ''}', '', 'friend')">
+                        <div class="friend-avatar">${initials}</div>
+                        <div class="friend-info">
+                            <div class="friend-name">${friend.friendName}</div>
+                            <div class="friend-bio">@${friend.friendUsername || ''}</div>
+                        </div>
+                        <div class="friend-actions" onclick="event.stopPropagation()">
+                            <button class="action-btn message" onclick="openChat('${friend.friendId}', '${friend.friendName}')" title="دردشة">💬</button>
+                            <button class="action-btn block" onclick="removeFriend('${friend.id}')" title="حظر">🚫</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Remove friend
+        window.removeFriend = async function(friendId) {
+            if (!confirm('هل أنت متأكد من حذف هذا الصديق؟')) return;
+
+            try {
+                await deleteDoc(doc(db, 'friends', friendId));
+                showToast('تم حذف الصديق');
+                loadFriends();
+            } catch (error) {
+                console.error("Error removing friend:", error);
+                showToast('فشل الحذف', 'error');
+            }
+        };
+
+        // Open chat
+        window.openChat = function(userUid, userName) {
+            window.location.href = `chat-friend.html?user=${userUid}&name=${encodeURIComponent(userName)}`;
+        };
+
+        // Load pending requests (received)
+        function loadPendingRequests() {
+            if (!currentUser) return;
+
+            const q = query(
+                collection(db, 'friendRequests'),
+                where('toUid', '==', currentUser.uid),
+                where('status', '==', 'pending')
+            );
+
+            onSnapshot(q, (snapshot) => {
+                pendingRequests = [];
+                snapshot.forEach(doc => {
+                    pendingRequests.push({ id: doc.id, ...doc.data() });
+                });
+
+                const totalRequests = pendingRequests.length + sentRequests.length;
+                document.getElementById('requestsCount').textContent = totalRequests;
+            });
+        }
+
+        // Render requests (received and sent)
+        function renderRequests() {
+            const container = document.getElementById('requestsList');
+            if (!container) return;
+
+            if (currentRequestTab === 'received') {
+                // Show received requests
+                if (pendingRequests.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📩</div><div class="empty-title">لا توجد طلبات مستلمة</div></div>';
+                    return;
+                }
+
+                let html = '';
+                pendingRequests.forEach(request => {
+                    const initials = request.fromName ? request.fromName.split(' ').map(n => n[0]).join('').substring(0, 2) : '👤';
+                    
+                    html += `
+                        <div class="friend-item" onclick="openUserProfile('${request.fromUid}', '${request.fromName}', '${request.fromUsername}', '${request.fromAvatar || ''}', '', 'received')">
+                            <div class="friend-avatar">${initials}</div>
+                            <div class="friend-info">
+                                <div class="friend-name">${request.fromName}</div>
+                                <div class="friend-bio">@${request.fromUsername || ''}</div>
+                            </div>
+                            <div class="friend-actions" onclick="event.stopPropagation()">
+                                <button class="action-btn add" onclick="acceptRequest('${request.id}', '${request.fromUid}', '${request.fromName}', '${request.fromUsername}', '${request.fromAvatar || ''}')" title="قبول">✓</button>
+                                <button class="action-btn block" onclick="blockUserFromRequest('${request.id}', '${request.fromUid}', '${request.fromName}')" title="حظر">🚫</button>
+                                <button class="action-btn message" onclick="openChat('${request.fromUid}', '${request.fromName}')" title="دردشة">💬</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } else {
+                // Show sent requests
+                if (sentRequests.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📤</div><div class="empty-title">لا توجد طلبات مرسلة</div></div>';
+                    return;
+                }
+
+                let html = '';
+                sentRequests.forEach(request => {
+                    const initials = request.toName ? request.toName.split(' ').map(n => n[0]).join('').substring(0, 2) : '👤';
+                    
+                    html += `
+                        <div class="friend-item" onclick="openUserProfile('${request.toUid}', '${request.toName}', '${request.toUsername}', '${request.toAvatar || ''}', '', 'sent')">
+                            <div class="friend-avatar">${initials}</div>
+                            <div class="friend-info">
+                                <div class="friend-name">${request.toName}</div>
+                                <div class="friend-bio">@${request.toUsername || ''} • بانتظار الموافقة</div>
+                            </div>
+                            <div class="friend-actions" onclick="event.stopPropagation()">
+                                <button class="action-btn message" onclick="openChat('${request.toUid}', '${request.toName}')" title="دردشة">💬</button>
+                                <button class="action-btn block" onclick="cancelRequest('${request.id}')" title="إلغاء">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            }
+        }
+
+        // Accept friend request
+        window.acceptRequest = async function(requestId, fromUid, fromName, fromUsername, fromAvatar) {
+            try {
+                await updateDoc(doc(db, 'friendRequests', requestId), {
+                    status: 'accepted',
+                    acceptedAt: serverTimestamp()
+                });
+
+                await addDoc(collection(db, 'friends'), {
+                    userId: currentUser.uid,
+                    friendId: fromUid,
+                    friendName: fromName,
+                    friendUsername: fromUsername,
+                    friendAvatar: fromAvatar,
+                    addedAt: serverTimestamp()
+                });
+
+                await addDoc(collection(db, 'friends'), {
+                    userId: fromUid,
+                    friendId: currentUser.uid,
+                    friendName: currentUserData.fullName,
+                    friendUsername: currentUserData.username,
+                    friendAvatar: currentUserData.avatar || null,
+                    addedAt: serverTimestamp()
+                });
+
+                showToast('تم قبول طلب الصداقة');
+                loadPendingRequests();
+                loadFriends();
+                loadAllUsers();
+            } catch (error) {
+                console.error("Error accepting request:", error);
+                showToast('فشل قبول الطلب', 'error');
+            }
+        };
+
+        // Block user from request
+        window.blockUserFromRequest = async function(requestId, fromUid, fromName) {
+            if (!confirm('هل أنت متأكد من حظر هذا المستخدم؟')) return;
+            
+            try {
+                await updateDoc(doc(db, 'friendRequests', requestId), {
+                    status: 'rejected',
+                    rejectedAt: serverTimestamp()
+                });
+                
+                showToast('تم حظر: ' + fromName);
+                loadPendingRequests();
+            } catch (error) {
+                console.error("Error blocking user:", error);
+                showToast('فشل حظر المستخدم', 'error');
+            }
+        };
+
+        // Load sent requests
+        function loadSentRequests() {
+            if (!currentUser) return;
+
+            const q = query(
+                collection(db, 'friendRequests'),
+                where('fromUid', '==', currentUser.uid),
+                where('status', '==', 'pending')
+            );
+
+            onSnapshot(q, (snapshot) => {
+                sentRequests = [];
+                snapshot.forEach(doc => {
+                    sentRequests.push({ id: doc.id, ...doc.data() });
+                });
+
+                document.getElementById('sentCount').textContent = sentRequests.length;
+                renderSentRequests();
+            });
+        }
+
+        // Render sent requests
+        function renderSentRequests() {
+            const container = document.getElementById('sentList');
+            if (!container) return;
+
+            if (sentRequests.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon">📤</div><div class="empty-title">لا توجد طلبات مرسلة</div></div>';
+                return;
+            }
+
+            let html = '';
+            sentRequests.forEach(request => {
+                const initials = request.toName ? request.toName.split(' ').map(n => n[0]).join('').substring(0, 2) : '👤';
+                
+                html += `
+                    <div class="friend-item" onclick="openUserProfile('${request.toUid}', '${request.toName}', '${request.toUsername}', '${request.toAvatar || ''}', '', 'sent')">
+                        <div class="friend-avatar">${initials}</div>
+                        <div class="friend-info">
+                            <div class="friend-name">${request.toName}</div>
+                            <div class="friend-bio">@${request.toUsername || ''} • بانتظار الموافقة</div>
+                        </div>
+                        <div class="friend-actions" onclick="event.stopPropagation()">
+                            <button class="action-btn message" onclick="openChat('${request.toUid}', '${request.toName}')" title="دردشة">💬</button>
+                            <button class="action-btn block" onclick="cancelRequest('${request.id}')" title="إلغاء">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Cancel sent request
+        window.cancelRequest = async function(requestId) {
+            try {
+                await deleteDoc(doc(db, 'friendRequests', requestId));
+                showToast('تم إلغاء الطلب');
+                loadSentRequests();
+                loadAllUsers();
+            } catch (error) {
+                console.error("Error cancelling request:", error);
+                showToast('فشل إلغاء الطلب', 'error');
+            }
+        };
+
+        // Open user profile modal
+        window.openUserProfile = async function(uid, fullName, username, avatar, country, type) {
+            selectedProfileUser = { uid, fullName, username, avatar, country, type };
+            
+            const avatarEl = document.getElementById('profileModalAvatar');
+            if (avatar && avatar.length > 0) {
+                avatarEl.innerHTML = `<img src="${avatar}" alt="${fullName}">`;
+            } else {
+                const initials = fullName ? fullName.split(' ').map(n => n[0]).join('').substring(0, 2) : '👤';
+                avatarEl.innerHTML = `<span class="avatar-placeholder">${initials}</span>`;
+            }
+            
+            document.getElementById('profileModalName').textContent = fullName || username || 'مستخدم';
+            document.getElementById('profileModalUsername').textContent = '@' + (username || 'user');
+            
+            // Load friend count
+            try {
+                const q = query(collection(db, 'friends'), where('userId', '==', uid));
+                const snapshot = await getDocs(q);
+                let friendCount = 0;
+                snapshot.forEach(() => friendCount++);
+                document.getElementById('profileFriendsCount').textContent = friendCount;
+            } catch (error) {
+                document.getElementById('profileFriendsCount').textContent = '0';
+            }
+            
+            // Render buttons based on type
+            renderProfileButtons(type, uid);
+            
+            document.getElementById('profileModal').classList.add('active');
+        };
+
+        // Render profile buttons based on user type
+        function renderProfileButtons(type, uid) {
+            const actionsContainer = document.getElementById('profileActions');
+            let html = '';
+            
+            if (type === 'all') {
+                html = `
+                    <button class="profile-modal-btn add-friend" onclick="sendFriendRequestFromProfile()">
+                        <span>➕</span>
+                        <span>إضافة صديق</span>
+                    </button>
+                    <button class="profile-modal-btn chat" onclick="openChatFromProfile()">
+                        <span>💬</span>
+                        <span>دردشة</span>
+                    </button>
+                `;
+            } else if (type === 'friend') {
+                html = `
+                    <button class="profile-modal-btn chat" onclick="openChatFromProfile()">
+                        <span>💬</span>
+                        <span>دردشة</span>
+                    </button>
+                    <button class="profile-modal-btn block" onclick="blockUserFromProfile()">
+                        <span>🚫</span>
+                        <span>حظر</span>
+                    </button>
+                `;
+            } else if (type === 'received') {
+                html = `
+                    <button class="profile-modal-btn add-friend" onclick="acceptRequestFromProfile()">
+                        <span>✓</span>
+                        <span>قبول الطلب</span>
+                    </button>
+                    <button class="profile-modal-btn chat" onclick="openChatFromProfile()">
+                        <span>💬</span>
+                        <span>دردشة</span>
+                    </button>
+                    <button class="profile-modal-btn block" onclick="blockUserFromProfile()">
+                        <span>🚫</span>
+                    </button>
+                `;
+            } else if (type === 'sent') {
+                html = `
+                    <button class="profile-modal-btn chat" onclick="openChatFromProfile()">
+                        <span>💬</span>
+                        <span>دردشة</span>
+                    </button>
+                `;
+            }
+            
+            actionsContainer.innerHTML = html;
+        }
+
+        // Send friend request from profile
+        window.sendFriendRequestFromProfile = function() {
+            if (!selectedProfileUser) return;
+            sendFriendRequest(selectedProfileUser.uid, selectedProfileUser.fullName, selectedProfileUser.username, selectedProfileUser.avatar);
+            closeProfileModal();
+        };
+
+        // Open chat from profile
+        window.openChatFromProfile = function() {
+            if (!selectedProfileUser) return;
+            closeProfileModal();
+            openChat(selectedProfileUser.uid, selectedProfileUser.fullName);
+        };
+
+        // Block user from profile
+        window.blockUserFromProfile = function() {
+            if (!selectedProfileUser) return;
+            if (confirm('هل أنت متأكد من حظر هذا المستخدم؟')) {
+                showToast('تم حظر: ' + selectedProfileUser.fullName);
+                closeProfileModal();
+            }
+        };
+
+        // Accept request from profile
+        window.acceptRequestFromProfile = async function() {
+            if (!selectedProfileUser || !currentUserData) return;
+            
+            const request = pendingRequests.find(r => r.fromUid === selectedProfileUser.uid);
+            if (request) {
+                await acceptRequest(request.id, request.fromUid, request.fromName, request.fromUsername, request.fromAvatar);
+                closeProfileModal();
+            }
+        };
+
+        // Close profile modal
+        window.closeProfileModal = function() {
+            document.getElementById('profileModal').classList.remove('active');
+            selectedProfileUser = null;
+        };
+
+        // Check URL for tab parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = urlParams.get('tab');
+        if (tabParam === 'users') {
+            setTimeout(() => {
+                const tabBtn = document.getElementById('tab-btn-all');
+                if (tabBtn) switchFriendsTab('all', tabBtn);
+            }, 500);
+        }
+
+        // Close modal on overlay click
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('profileModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeProfileModal();
+                }
+            });
+        });
+
+        initTheme();
+    </script>
+    <script>
+        initTheme();
     </script>
 </body>
 </html>
+
