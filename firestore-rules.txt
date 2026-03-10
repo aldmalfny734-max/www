@@ -1,173 +1,80 @@
-// Firestore Security Rules - القواعد الأمنية لنظام الدردشة
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // ========================================
-    // المستخدمون - Users
-    // ========================================
+    // المستخدمين -所有人都可以读取
     match /users/{userId} {
       allow read: if true;
       allow create: if request.auth != null;
       allow update, delete: if request.auth != null && request.auth.uid == userId;
     }
     
-    // ========================================
-    // طلبات الصداقة - Friend Requests
-    // ========================================
-    match /friendRequests/{requestId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update: if request.auth != null && 
-        (request.auth.uid == resource.data.fromUid || request.auth.uid == resource.data.toUid);
-      allow delete: if request.auth != null && request.auth.uid == resource.data.fromUid;
-    }
-    
-    // ========================================
-    // الأصدقاء - Friends
-    // ========================================
+    // الأصدقاء - المستخدمون المسجلون يمكنهم القراءة والكتابة
     match /friends/{friendId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null;
-      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow update, delete: if request.auth != null;
     }
     
-    // ========================================
-    // غرف الدردشة - Chat Rooms
-    // ========================================
-    match /chatRooms/{roomId} {
+    // طلبات الصداقة
+    match /friendRequests/{requestId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null;
-      allow update: if request.auth != null && 
-        (request.auth.uid == resource.data.createdBy || 
-         (resource.data.members != null && request.auth.uid in resource.data.members));
-      allow delete: if request.auth != null && request.auth.uid == resource.data.createdBy;
-      
-      // رسائل الغرفة
-      match /messages/{messageId} {
-        allow read: if request.auth != null && 
-          (resource == null || 
-           resource.data.roomId == roomId ||
-           (get(/databases/$(database)/documents/chatRooms/$(roomId)).data.members != null &&
-            request.auth.uid in get(/databases/$(database)/documents/chatRooms/$(roomId)).data.members));
-        allow create: if request.auth != null &&
-          get(/databases/$(database)/documents/chatRooms/$(roomId)).data.members != null &&
-          request.auth.uid in get(/databases/$(database)/documents/chatRooms/$(roomId)).data.members;
-      }
+      allow update, delete: if request.auth != null;
     }
     
-    // ========================================
-    // المحادثات الخاصة - Private Chats
-    // ========================================
-    function isChatParticipant(chatId) {
-      return chatId.split('_').length == 2 &&
-        (chatId.split('_')[0] == request.auth.uid || chatId.split('_')[1] == request.auth.uid);
-    }
-    
+    // المحادثات الخاصة - يمكن للمستخدمين قراءة ومحادثة أصدقائهم
     match /chats/{chatId} {
       allow read, write: if request.auth != null;
       
       match /messages/{messageId} {
         allow read: if request.auth != null;
-        allow create: if request.auth != null && 
-          request.resource.data.senderId == request.auth.uid;
+        allow create: if request.auth != null;
       }
     }
     
-    // ========================================
-    // الإشعارات - Notifications
-    // ========================================
-    match /notifications/{notificationId} {
-      allow read: if request.auth != null && request.auth.uid == resource.data.toUid;
+    // غرف الدردشة
+    match /chatRooms/{roomId} {
+      allow read: if request.auth != null;
       allow create: if request.auth != null;
-      allow update: if request.auth != null && request.auth.uid == resource.data.toUid;
-      allow delete: if request.auth != null && request.auth.uid == resource.data.toUid;
+      allow update, delete: if request.auth != null;
+      
+      match /messages/{messageId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null;
+      }
     }
     
-    // ========================================
-    // المحظورات - Blocked Users
-    // ========================================
-    match /blockedUsers/{userId}/{document=**} {
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    // ========================================
-    // طلبات الانضمام للغرف - Room Join Requests
-    // ========================================
+    // طلبات الانضمام للغرف
     match /roomJoinRequests/{requestId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null;
-      allow update: if request.auth != null && 
-        (request.auth.uid == get(/databases/$(database)/documents/chatRooms/$(request.resource.data.roomId)).data.createdBy ||
-         request.auth.uid == resource.data.userId);
-      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow update, delete: if request.auth != null;
     }
     
-    // ========================================
-    // الغرف التي أنشأها المستخدم - User's Created Rooms
-    // ========================================
-    match /userRooms/{userId}/{document=**} {
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    // ========================================
-    // المحظورات من الغرف - Room Banned Users
-    // ========================================
-    match /roomBannedUsers/{roomId}/{userId} {
+    // الإشعارات
+    match /notifications/{notificationId} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null && 
-        request.auth.uid == get(/databases/$(database)/documents/chatRooms/$(roomId)).data.createdBy;
-      allow delete: if request.auth != null && 
-        request.auth.uid == get(/databases/$(database)/documents/chatRooms/$(roomId)).data.createdBy;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null;
     }
     
-    // ========================================
-    // المنشورات - Posts
-    // ========================================
+    // المحظورات
+    match /blockedUsers/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // المنشورات والتعليقات
     match /posts/{postId} {
       allow read: if true;
       allow create: if request.auth != null;
-      allow update: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow update, delete: if request.auth != null;
       
-      // تعليقات المنشورات - يمكن حذفها والتعديل عليها
       match /comments/{commentId} {
         allow read: if true;
         allow create: if request.auth != null;
-        allow update: if request.auth != null && request.auth.uid == resource.data.userId;
-        allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      }
-      
-      // إعجابات المنشورات
-      match /likes/{likeId} {
-        allow read: if true;
-        allow create: if request.auth != null;
-        allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+        allow update, delete: if request.auth != null;
       }
     }
-    
-    // ========================================
-    // قصص المستخدمين - Stories
-    // ========================================
-    match /stories/{storyId} {
-      allow read: if true;
-      allow create: if request.auth != null;
-      allow update: if false;
-      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-    
-    // ========================================
-    // تقارير المنشورات - Post Reports
-    // ========================================
-    match /postReports/{reportId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update: if false;
-      allow delete: if false;
-    }
-    
   }
 }
-

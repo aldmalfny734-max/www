@@ -301,19 +301,49 @@
             gap: 12px;
         }
 
-        .chat-friend-input {
+        .chat-friend-input-wrapper {
             flex: 1;
-            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             background: var(--background);
             border: 2px solid var(--border);
             border-radius: 24px;
+            padding: 4px 8px 4px 16px;
+        }
+
+        .chat-friend-input-wrapper:focus-within {
+            border-color: var(--primary);
+        }
+
+        .chat-friend-input {
+            flex: 1;
+            padding: 8px 0;
+            background: transparent;
+            border: none;
             color: var(--text);
             font-size: 14px;
             outline: none;
         }
 
-        .chat-friend-input:focus {
-            border-color: var(--primary);
+        .chat-friend-attach-btn {
+            width: 36px;
+            height: 36px;
+            background: var(--surface-alt);
+            border: none;
+            border-radius: 50%;
+            color: var(--text-muted);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .chat-friend-attach-btn:hover {
+            background: var(--primary);
+            color: white;
         }
 
         .chat-friend-send-btn {
@@ -333,6 +363,78 @@
 
         .chat-friend-send-btn:hover {
             background: var(--primary-light);
+        }
+
+        /* Image Message */
+        .chat-friend-image-message {
+            max-width: 250px;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .chat-friend-image-message img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Image Preview Modal */
+        .image-preview-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .image-preview-modal.active {
+            display: flex;
+        }
+
+        .image-preview-modal img {
+            max-width: 100%;
+            max-height: 90vh;
+            border-radius: 12px;
+        }
+
+        .image-preview-modal .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        /* Hidden file input */
+        #imageInput {
+            display: none;
+        }
+
+        /* Loading indicator */
+        .sending-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         /* Dropdown Overlay */
@@ -410,8 +512,24 @@
         </div>
 
         <div class="chat-friend-input-area">
-            <input type="text" class="chat-friend-input" id="messageInput" placeholder="اكتب رسالتك..." onkeypress="handleMessageKeyPress(event)">
+            <button class="chat-friend-attach-btn" onclick="document.getElementById('imageInput').click()" title="إرسال صورة">📷</button>
+            <div class="chat-friend-input-wrapper">
+                <input type="text" class="chat-friend-input" id="messageInput" placeholder="اكتب رسالتك..." onkeypress="handleMessageKeyPress(event)">
+            </div>
             <button class="chat-friend-send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+        </div>
+    </div>
+
+    <!-- Hidden file input for images -->
+    <input type="file" id="imageInput" accept="image/*" onchange="handleImageSelect(event)">
+    
+    <!-- Image Preview Modal -->
+    <div class="image-preview-modal" id="imagePreviewModal" onclick="closeImagePreview()">
+        <button class="close-btn" onclick="closeImagePreview()">✕</button>
+        <img id="previewImage" src="" alt="Preview">
+        <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px;">
+            <button onclick="document.getElementById('imageInput').click(); closeImagePreview();" style="padding: 12px 24px; background: var(--surface); color: var(--text); border: none; border-radius: 24px; cursor: pointer; font-weight: 700;">تغيير</button>
+            <button onclick="sendImageMessage()" id="sendImageBtn" style="padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 24px; cursor: pointer; font-weight: 700;">إرسال 📤</button>
         </div>
     </div>
 
@@ -566,10 +684,22 @@
                     const isSent = msg.senderId === currentUser.uid;
                     const time = msg.createdAt ? msg.createdAt.toDate().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }) : '';
 
-                    html += `<div class="chat-friend-message ${isSent ? 'sent' : 'received'}">
-                        <div class="chat-friend-bubble">${escapeHtml(msg.text)}</div>
-                        <div class="chat-friend-time">${time}</div>
-                    </div>`;
+                    // Check if message has image
+                    if (msg.image) {
+                        html += `<div class="chat-friend-message ${isSent ? 'sent' : 'received'}">
+                            <div class="chat-friend-bubble" style="padding: 4px;">
+                                <div class="chat-friend-image-message">
+                                    <img src="${msg.image}" alt="صورة" onclick="window.open(this.src, '_blank')" style="cursor: pointer;">
+                                </div>
+                            </div>
+                            <div class="chat-friend-time">${time}</div>
+                        </div>`;
+                    } else {
+                        html += `<div class="chat-friend-message ${isSent ? 'sent' : 'received'}">
+                            <div class="chat-friend-bubble">${escapeHtml(msg.text)}</div>
+                            <div class="chat-friend-time">${time}</div>
+                        </div>`;
+                    }
                 });
 
                 if (!hasMessages) {
@@ -803,6 +933,120 @@
             div.textContent = text;
             return div.innerHTML;
         }
+        
+        // ============ Image Message Functions ============
+        
+        let selectedImageData = null;
+        
+        // Handle image selection
+        window.handleImageSelect = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Check file type
+            if (!file.type.startsWith('image/')) {
+                showToast('يرجى اختيار صورة', 'error');
+                return;
+            }
+            
+            // Check file size (max 10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                showToast('حجم الصورة كبير جداً (حد أقصى 10MB)', 'error');
+                return;
+            }
+            
+            // Read file as data URL
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedImageData = e.target.result;
+                // Show preview
+                document.getElementById('previewImage').src = selectedImageData;
+                document.getElementById('imagePreviewModal').classList.add('active');
+            };
+            reader.readAsDataURL(file);
+            
+            // Reset input
+            event.target.value = '';
+        };
+        
+        // Close image preview
+        window.closeImagePreview = function() {
+            document.getElementById('imagePreviewModal').classList.remove('active');
+            selectedImageData = null;
+        };
+        
+        // Send image message
+        window.sendImageMessage = async function() {
+            if (!selectedImageData) {
+                showToast('يرجى اختيار صورة أولاً', 'error');
+                return;
+            }
+            
+            if (!currentUser || !friendUid) {
+                showToast('خطأ في البيانات', 'error');
+                return;
+            }
+            
+            // Show loading state
+            const sendBtn = document.getElementById('sendImageBtn');
+            const originalText = sendBtn.innerHTML;
+            sendBtn.innerHTML = '⏳ جاري الإرسال...';
+            sendBtn.disabled = true;
+            
+            try {
+                const chatId = [currentUser.uid, friendUid].sort().join('_');
+                
+                // Create chat if not exists
+                const chatDocRef = doc(db, 'chats', chatId);
+                const chatDocSnap = await getDoc(chatDocRef);
+                
+                if (!chatDocSnap.exists()) {
+                    await setDoc(chatDocRef, {
+                        participants: [currentUser.uid, friendUid],
+                        createdAt: serverTimestamp(),
+                        lastMessage: '📷 صورة',
+                        lastMessageTime: serverTimestamp()
+                    });
+                }
+                
+                // Send image message
+                await addDoc(collection(db, 'chats', chatId, 'messages'), {
+                    text: '📷',
+                    image: selectedImageData, // Store image as base64
+                    senderId: currentUser.uid,
+                    senderName: currentUserData?.fullName || currentUser.displayName || 'مستخدم',
+                    receiverId: friendUid,
+                    type: 'image',
+                    createdAt: serverTimestamp()
+                });
+                
+                // Close modal
+                closeImagePreview();
+                showToast('تم إرسال الصورة');
+                
+                // Send notification
+                try {
+                    await addDoc(collection(db, 'notifications'), {
+                        type: 'image',
+                        fromUid: currentUser.uid,
+                        fromName: currentUserData?.fullName || currentUser.displayName || 'مستخدم',
+                        toUid: friendUid,
+                        text: '📷 أرسل لك صورة',
+                        createdAt: serverTimestamp(),
+                        read: false
+                    });
+                } catch (notifError) {
+                    console.warn('⚠️ فشل إرسال الإشعار:', notifError);
+                }
+                
+            } catch (error) {
+                console.error('❌ خطأ في إرسال الصورة:', error);
+                showToast('فشل إرسال الصورة', 'error');
+            } finally {
+                sendBtn.innerHTML = originalText;
+                sendBtn.disabled = false;
+            }
+        };
 
         initTheme();
     </script>

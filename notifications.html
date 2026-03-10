@@ -7,30 +7,405 @@
     <link rel="stylesheet" href="styles.css">
     <style>
         body { padding-bottom: 80px; }
-        .notification-item { background: var(--surface); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 12px; }
+        .notification-item { background: var(--surface); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 12px; cursor: pointer; }
         .notification-item.unread { border-right: 4px solid var(--primary); }
-        .notif-avatar { width: 50px; height: 50px; border-radius: 50%; overflow: hidden; border: 3px solid var(--border); background: var(--surface-alt); display: flex; align-items: center; justify-content: center; }
+        .notif-avatar { width: 50px; height: 50px; border-radius: 50%; overflow: hidden; border: 3px solid var(--border); background: var(--surface-alt); display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .notif-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .notif-content { flex: 1; }
         .notif-text { font-size: 14px; margin-bottom: 4px; }
         .notif-text strong { font-weight: 700; }
         .notif-time { font-size: 12px; color: var(--text-muted); }
+        .notif-actions { display: flex; gap: 8px; margin-top: 8px; }
+        .notif-btn { padding: 6px 16px; border-radius: 20px; border: none; font-size: 12px; cursor: pointer; }
+        .notif-btn.accept { background: var(--primary); color: white; }
+        .notif-btn.reject { background: var(--border); color: var(--text); }
+        .section-title { font-size: 16px; font-weight: 700; margin: 20px 0 12px; color: var(--text); }
+        .delete-all-btn { float: left; font-size: 12px; color: #ff4444; cursor: pointer; }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, where, orderBy, onSnapshot, doc, updateDoc, deleteDoc, getDoc, getDocs, or, and } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         const firebaseConfig = { apiKey: "AIzaSyDVP5IRHetBo7JDSRLteQOFX4fhsts3ur0", authDomain: "chat-94032.firebaseapp.com", projectId: "chat-94032", storageBucket: "chat-94032.firebasestorage.app", messagingSenderId: "920803161623", appId: "1:920803161623:web:a2995a99c07b42af1d0e52" };
         const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
         window.firebaseApps = [app];
+        
+        let currentUser = null;
+        
+        // التحقق من تسجيل الدخول
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+            currentUser = user;
+            loadNotifications();
+        });
+        
+        // تحميل الإشعارات
+        async function loadNotifications() {
+            if (!currentUser) return;
+            
+            // تحميل طلبات الصداقة الواردة
+            loadFriendRequests();
+            
+            // تحميل طلبات الانضمام للغرف
+            loadRoomJoinRequests();
+            
+            // تحميل الإشعارات العامة
+            loadGeneralNotifications();
+        }
+        
+        // طلبات الصداقة الواردة
+        async function loadFriendRequests() {
+            const container = document.getElementById('friendRequestsList');
+            if (!container) return;
+            
+            const q = query(
+                collection(db, 'friendRequests'),
+                where('toUid', '==', currentUser.uid),
+                where('status', '==', 'pending'),
+                orderBy('createdAt', 'desc')
+            );
+            
+            onSnapshot(q, async (snapshot) => {
+                let html = '';
+                if (snapshot.empty) {
+                    html = '<div class="empty-state"><div class="empty-icon">📩</div><div class="empty-title">لا توجد طلبات صداقة</div>';
+                } else {
+                    for (const docSnap of snapshot.docs) {
+                        const req = docSnap.data();
+                        const fromUser = await getUserData(req.fromUid);
+                        const time = req.createdAt ? formatTimeAgo(req.createdAt.toDate()) : '';
+                        
+                        html += `
+                            <div class="notification-item unread" data-id="${docSnap.id}" data-type="friend">
+                                <div class="notif-avatar">
+                                    ${fromUser?.photoURL ? `<img src="${fromUser.photoURL}" alt="">` : '👤'}
+                                </div>
+                                <div class="notif-content">
+                                    <div class="notif-text"><strong>${fromUser?.displayName || 'مستخدم'}</strong> يريد إضافتك كصديق</div>
+                                    <div class="notif-time">${time}</div>
+                                    <div class="notif-actions">
+                                        <button class="notif-btn accept" onclick="acceptFriendRequest('${docSnap.id}', '${req.fromUid}')">✓ قبول</button>
+                                        <button class="notif-btn reject" onclick="rejectFriendRequest('${docSnap.id}')">✗ رفض</button>
+                                    </div>
+                            </div>
+                        `;
+                    }
+                }
+                container.innerHTML = html;
+            });
+        }
+        
+        // طلبات الانضمام للغرف
+        async function loadRoomJoinRequests() {
+            const container = document.getElementById('roomRequestsList');
+            if (!container) return;
+            
+            // جلب الغرف التي أنشأها المستخدم
+            const roomsQuery = query(collection(db, 'chatRooms'), where('createdBy', '==', currentUser.uid));
+            const roomsSnapshot = await getDocs(roomsQuery);
+            const myRoomIds = roomsSnapshot.docs.map(d => d.id);
+            
+            if (myRoomIds.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon">🚪</div><div class="empty-title">لا توجد طلبات انضمام</div>';
+                return;
+            }
+            
+            // جلب طلبات الانضمام لهذه الغرف
+            const q = query(
+                collection(db, 'roomJoinRequests'),
+                where('roomId', 'in', myRoomIds),
+                where('status', '==', 'pending'),
+                orderBy('createdAt', 'desc')
+            );
+            
+            onSnapshot(q, async (snapshot) => {
+                let html = '';
+                if (snapshot.empty) {
+                    html = '<div class="empty-state"><div class="empty-icon">🚪</div><div class="empty-title">لا توجد طلبات انضمام</div>';
+                } else {
+                    for (const docSnap of snapshot.docs) {
+                        const req = docSnap.data();
+                        const userData = await getUserData(req.userId);
+                        const roomData = await getRoomData(req.roomId);
+                        const time = req.createdAt ? formatTimeAgo(req.createdAt.toDate()) : '';
+                        
+                        html += `
+                            <div class="notification-item unread" data-id="${docSnap.id}" data-type="room">
+                                <div class="notif-avatar">
+                                    ${userData?.photoURL ? `<img src="${userData.photoURL}" alt="">` : '👤'}
+                                </div>
+                                <div class="notif-content">
+                                    <div class="notif-text"><strong>${userData?.displayName || 'مستخدم'}</strong> يريد الانضمام إلى غرفة <strong>${roomData?.name || 'غير معروفة'}</strong></div>
+                                    <div class="notif-time">${time}</div>
+                                    <div class="notif-actions">
+                                        <button class="notif-btn accept" onclick="acceptRoomRequest('${docSnap.id}', '${req.roomId}', '${req.userId}')">✓ قبول</button>
+                                        <button class="notif-btn reject" onclick="rejectRoomRequest('${docSnap.id}')">✗ رفض</button>
+                                    </div>
+                            </div>
+                        `;
+                    }
+                }
+                container.innerHTML = html;
+            });
+        }
+        
+        // الإشعارات العامة
+        async function loadGeneralNotifications() {
+            const container = document.getElementById('generalNotificationsList');
+            if (!container) return;
+            
+            const q = query(
+                collection(db, 'notifications'),
+                where('toUid', '==', currentUser.uid),
+                orderBy('createdAt', 'desc')
+            );
+            
+            onSnapshot(q, async (snapshot) => {
+                let html = '';
+                if (snapshot.empty) {
+                    html = '<div class="empty-state"><div class="empty-icon">🔔</div><div class="empty-title">لا توجد إشعارات</div>';
+                } else {
+                    for (const docSnap of snapshot.docs) {
+                        const notif = docSnap.data();
+                        const fromUser = notif.fromUid ? await getUserData(notif.fromUid) : null;
+                        const time = notif.createdAt ? formatTimeAgo(notif.createdAt.toDate()) : '';
+                        
+                        let icon = '📩';
+                        let text = notif.message || 'إشعار جديد';
+                        
+                        if (notif.type === 'message') {
+                            icon = '💬';
+                        } else if (notif.type === 'friend_accept') {
+                            icon = '🤝';
+                            text = `<strong>${fromUser?.displayName || 'مستخدم'}</strong> وافق على طلب صداقتك`;
+                        } else if (notif.type === 'room_accept') {
+                            icon = '🎉';
+                            text = `تم قبول طلب انضمامك لغرفة <strong>${notif.roomName || ''}</strong>`;
+                        }
+                        
+                        html += `
+                            <div class="notification-item ${notif.read ? '' : 'unread'}" onclick="handleNotificationClick('${docSnap.id}', '${notif.type}', '${notif.roomId || ''}', '${notif.chatId || ''}')">
+                                <div class="notif-avatar">${icon}</div>
+                                <div class="notif-content">
+                                    <div class="notif-text">${text}</div>
+                                    <div class="notif-time">${time}</div>
+                            </div>
+                        `;
+                    }
+                }
+                container.innerHTML = html;
+            });
+        }
+        
+        // الحصول على بيانات المستخدم
+        async function getUserData(uid) {
+            if (!uid) return null;
+            const docRef = doc(db, 'users', uid);
+            const docSnap = await getDoc(docRef);
+            return docSnap.exists() ? docSnap.data() : null;
+        }
+        
+        // الحصول على بيانات الغرفة
+        async function getRoomData(roomId) {
+            if (!roomId) return null;
+            const docRef = doc(db, 'chatRooms', roomId);
+            const docSnap = await getDoc(docRef);
+            return docSnap.exists() ? docSnap.data() : null;
+        }
+        
+        // قبول طلب الصداقة
+        async function acceptFriendRequest(requestId, fromUid) {
+            try {
+                const requestRef = doc(db, 'friendRequests', requestId);
+                await updateDoc(requestRef, { status: 'accepted' });
+                
+                // إضافة كل مستخدم كصديق للآخر
+                const friendId1 = currentUser.uid + '_' + fromUid;
+                const friendId2 = fromUid + '_' + currentUser.uid;
+                
+                await setDoc(doc(db, 'friends', friendId1), {
+                    userId: currentUser.uid,
+                    friendId: fromUid,
+                    createdAt: new Date()
+                });
+                
+                await setDoc(doc(db, 'friends', friendId2), {
+                    userId: fromUid,
+                    friendId: currentUser.uid,
+                    createdAt: new Date()
+                });
+                
+                // إرسال إشعار للمرسل
+                await addDoc(collection(db, 'notifications'), {
+                    toUid: fromUid,
+                    fromUid: currentUser.uid,
+                    type: 'friend_accept',
+                    message: 'وافق على طلب صداقتك',
+                    read: false,
+                    createdAt: new Date()
+                });
+                
+                showToast('✓ تم قبول الطلب');
+            } catch (e) {
+                console.error(e);
+                showToast('✗ فشل في قبول الطلب');
+            }
+        }
+        
+        // رفض طلب الصداقة
+        async function rejectFriendRequest(requestId) {
+            try {
+                await updateDoc(doc(db, 'friendRequests', requestId), { status: 'rejected' });
+                showToast('✗ تم رفض الطلب');
+            } catch (e) {
+                console.error(e);
+                showToast('✗ فشل في رفض الطلب');
+            }
+        }
+        
+        // قبول طلب الانضمام للغرفة
+        async function acceptRoomRequest(requestId, roomId, userId) {
+            try {
+                const requestRef = doc(db, 'roomJoinRequests', requestId);
+                await updateDoc(requestRef, { status: 'accepted' });
+                
+                // إضافة المستخدم للغرفة
+                const roomRef = doc(db, 'chatRooms', roomId);
+                const roomSnap = await getDoc(roomRef);
+                
+                if (roomSnap.exists()) {
+                    const roomData = roomSnap.data();
+                    const members = roomData.members || [];
+                    if (!members.includes(userId)) {
+                        members.push(userId);
+                        await updateDoc(roomRef, { members: members });
+                    }
+                }
+                
+                // إرسال إشعار للمستخدم
+                const roomData = await getRoomData(roomId);
+                await addDoc(collection(db, 'notifications'), {
+                    toUid: userId,
+                    fromUid: currentUser.uid,
+                    type: 'room_accept',
+                    roomId: roomId,
+                    roomName: roomData?.name || '',
+                    message: 'تم قبول طلب انضمامك',
+                    read: false,
+                    createdAt: new Date()
+                });
+                
+                showToast('✓ تم قبول الطلب');
+            } catch (e) {
+                console.error(e);
+                showToast('✗ فشل في قبول الطلب');
+            }
+        }
+        
+        // رفض طلب الانضمام للغرفة
+        async function rejectRoomRequest(requestId) {
+            try {
+                await updateDoc(doc(db, 'roomJoinRequests', requestId), { status: 'rejected' });
+                showToast('✗ تم رفض الطلب');
+            } catch (e) {
+                console.error(e);
+                showToast('✗ فشل في رفض الطلب');
+            }
+        }
+        
+        // التعامل مع النقر على الإشعار
+        async function handleNotificationClick(notifId, type, roomId, chatId) {
+            // تعليم الإشعار كمقروء
+            await updateDoc(doc(db, 'notifications', notifId), { read: true });
+            
+            if (type === 'room' || type === 'room_accept') {
+                window.location.href = 'chat-room.html?roomId=' + roomId;
+            } else if (type === 'message' || type === 'chat') {
+                window.location.href = 'chat-friend.html?friendId=' + chatId;
+            }
+        }
+        
+        // حذف جميع الإشعارات
+        async function deleteAllNotifications() {
+            if (!confirm('هل أنت متأكد من حذف جميع الإشعارات؟')) return;
+            
+            try {
+                const q = query(collection(db, 'notifications'), where('toUid', '==', currentUser.uid));
+                const snapshot = await getDocs(q);
+                
+                for (const docSnap of snapshot.docs) {
+                    await deleteDoc(doc(db, 'notifications', docSnap.id));
+                }
+                
+                showToast('✓ تم حذف الإشعارات');
+            } catch (e) {
+                console.error(e);
+                showToast('✗ فشل في الحذف');
+            }
+        }
+        
+        // تنسيق الوقت
+        function formatTimeAgo(date) {
+            const now = new Date();
+            const diff = now - date;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+            
+            if (minutes < 1) return 'الآن';
+            if (minutes < 60) return 'منذ ' + minutes + ' دقيقة';
+            if (hours < 24) return 'منذ ' + hours + ' ساعة';
+            if (days < 7) return 'منذ ' + days + ' يوم';
+            return date.toLocaleDateString('ar-SA');
+        }
+        
+        // دالة إضافة المستند
+        async function setDoc(docRef, data) {
+            await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js").then(() => {
+                return import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js").then(m => m.setDoc(docRef, data));
+            });
+        }
+        
+        // دالة إضافة مستند
+        async function addDoc(colRef, data) {
+            const { addDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+            return await addDoc(colRef, data);
+        }
+        
+        window.acceptFriendRequest = acceptFriendRequest;
+        window.rejectFriendRequest = rejectFriendRequest;
+        window.acceptRoomRequest = acceptRoomRequest;
+        window.rejectRoomRequest = rejectRoomRequest;
+        window.handleNotificationClick = handleNotificationClick;
+        window.deleteAllNotifications = deleteAllNotifications;
     </script>
 </head>
 <body>
     <header class="header">
         <a href="home.html" class="back-btn">→</a>
         <span class="header-title">الإشعارات</span>
+        <span class="delete-all-btn" onclick="deleteAllNotifications()">حذف الكل</span>
     </header>
     <main class="main-content">
-        <div class="section-title" style="margin-bottom:16px;">📩 طلبات الصداقة</div>
+        <!-- طلبات الصداقة -->
+        <div class="section-title">📩 طلبات الصداقة <span class="delete-all-btn" onclick="deleteAllNotifications()"></span></div>
         <div id="friendRequestsList">
-            <div class="empty-state"><div class="empty-icon">📩</div><div class="empty-title">لا توجد طلبات</div></div>
+            <div class="empty-state"><div class="empty-icon">📩</div><div class="empty-title">جاري التحميل...</div>
+        </div>
+        
+        <!-- طلبات الانضمام للغرف -->
+        <div class="section-title">🚪 طلبات الانضمام للغرف</div>
+        <div id="roomRequestsList">
+            <div class="empty-state"><div class="empty-icon">🚪</div><div class="empty-title">جاري التحميل...</div>
+        </div>
+        
+        <!-- الإشعارات العامة -->
+        <div class="section-title">🔔 الإشعارات</div>
+        <div id="generalNotificationsList">
+            <div class="empty-state"><div class="empty-icon">🔔</div><div class="empty-title">جاري التحميل...</div>
         </div>
     </main>
     <nav class="footer-nav">
@@ -45,4 +420,3 @@
     <script>initTheme();</script>
 </body>
 </html>
-
