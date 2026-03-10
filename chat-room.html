@@ -515,7 +515,7 @@
     <!-- Dropdown Overlay -->
     <div class="chat-room-dropdown-overlay" id="dropdownOverlay" onclick="closeDropdown()"></div>
 
-    <!-- Members Modal -->
+        <!-- Members Modal -->
     <div class="members-modal-overlay" id="membersModal">
         <div class="members-modal">
             <div class="members-modal-header">
@@ -524,6 +524,19 @@
             </div>
             <div class="members-modal-body" id="membersList">
                 <!-- Members will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Requests Modal -->
+    <div class="members-modal-overlay" id="joinRequestsModal">
+        <div class="members-modal">
+            <div class="members-modal-header" style="background: linear-gradient(135deg, var(--warning), #f59e0b);">
+                <div class="members-modal-title">طلبات الانضمام (<span id="joinRequestsCount">0</span>)</div>
+                <button class="members-modal-close" onclick="closeJoinRequestsModal()">✕</button>
+            </div>
+            <div class="members-modal-body" id="joinRequestsList" style="max-height: 60vh;">
+                <!-- Join requests will be loaded here -->
             </div>
         </div>
     </div>
@@ -542,8 +555,12 @@
         </div>
         <button class="chat-room-menu-btn" onclick="toggleDropdown()">⋮</button>
         
-        <!-- Dropdown Menu -->
+        // Dropdown Menu -->
         <div class="chat-room-dropdown" id="menuDropdown">
+            <div class="chat-room-dropdown-item" onclick="showJoinRequestsModal(); closeDropdown();" id="joinRequestsMenuItem" style="display: none;">
+                <span>📩</span>
+                <span>طلبات الانضمام</span>
+            </div>
             <div class="chat-room-dropdown-item info" onclick="showMembersModal(); closeDropdown();">
                 <span>👥</span>
                 <span>عرض الأعضاء</span>
@@ -671,6 +688,12 @@
 
                 // Load room members
                 await loadRoomMembers();
+                
+                // Check if current user is room owner and show join requests option
+                if (roomData.createdBy === currentUser.uid) {
+                    document.getElementById('joinRequestsMenuItem').style.display = 'flex';
+                    checkAndShowJoinRequestsBadge();
+                }
 
             } catch (error) {
                 console.error("Error loading room info:", error);
@@ -1285,6 +1308,166 @@
         window.closeMembersModal = function() {
             document.getElementById('membersModal').classList.remove('active');
         };
+
+        // Join Requests Modal - Show join requests for room owner
+        window.showJoinRequestsModal = function() {
+            if (!roomData || roomData.createdBy !== currentUser.uid) {
+                showToast('لا يمكنك عرض طلبات الانضمام', 'error');
+                return;
+            }
+            loadJoinRequests();
+            document.getElementById('joinRequestsModal').classList.add('active');
+        };
+
+        window.closeJoinRequestsModal = function() {
+            document.getElementById('joinRequestsModal').classList.remove('active');
+        };
+
+        // Load join requests for this room
+        let joinRequestsUnsubscribe = null;
+
+        async function loadJoinRequests() {
+            const container = document.getElementById('joinRequestsList');
+            const countEl = document.getElementById('joinRequestsCount');
+            
+            if (joinRequestsUnsubscribe) {
+                joinRequestsUnsubscribe();
+            }
+
+            const q = query(
+                collection(db, 'roomJoinRequests'),
+                where('roomId', '==', roomId),
+                where('status', '==', 'pending')
+            );
+
+            joinRequestsUnsubscribe = onSnapshot(q, async (snapshot) => {
+                const requests = [];
+                snapshot.forEach(doc => {
+                    requests.push({ id: doc.id, ...doc.data() });
+                });
+
+                countEl.textContent = requests.length;
+
+                if (requests.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">لا توجد طلبات انضمام</div></div>';
+                    return;
+                }
+
+                let html = '';
+                for (const request of requests) {
+                    const initials = request.userName ? request.userName.split(' ').map(n => n[0]).join('').substring(0, 2) : '؟';
+                    const avatarHtml = request.userAvatar ? 
+                        `<img src="${request.userAvatar}" alt="${request.userName}">` :
+                        `<span style="font-size: 18px; font-weight: 700; color: var(--primary);">${initials}</span>`;
+
+                    html += `<div class="member-item">
+                        <div class="member-avatar">${avatarHtml}</div>
+                        <div class="member-info">
+                            <div class="member-name">${request.userName || 'مستخدم'}</div>
+                            <div class="member-status">${request.createdAt ? new Date(request.createdAt.toDate()).toLocaleDateString('ar-SA') : ''}</div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="approveJoinRequest('${request.id}', '${request.userId}', '${encodeURIComponent(request.userName || '')}')" style="padding: 8px 16px; background: var(--success); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700;">✓ موافقة</button>
+                            <button onclick="rejectJoinRequest('${request.id}')" style="padding: 8px 16px; background: var(--error); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700;">✕ رفض</button>
+                        </div>
+                    </div>`;
+                }
+
+                container.innerHTML = html;
+            });
+        }
+
+        // Approve join request
+        window.approveJoinRequest = async function(requestId, userId, userName) {
+            try {
+                // Update request status
+                await updateDoc(doc(db, 'roomJoinRequests', requestId), {
+                    status: 'approved',
+                    approvedAt: serverTimestamp()
+                });
+
+                // Add user to room members
+                const roomDoc = await getDoc(doc(db, 'chatRooms', roomId));
+                if (roomDoc.exists()) {
+                    const room = roomDoc.data();
+                    let members = room.members || [];
+                    if (!members.includes(userId)) {
+                        members.push(userId);
+                        await updateDoc(doc(db, 'chatRooms', roomId), { members: members });
+                    }
+                }
+
+                // Create notification for the user
+                await addDoc(collection(db, 'notifications'), {
+                    toUid: userId,
+                    fromUid: currentUser.uid,
+                    fromName: currentUserData?.fullName || 'المستخدم',
+                    type: 'room_join_approved',
+                    roomId: roomId,
+                    roomName: roomData?.name,
+                    message: `تم قبول طلب انضمامك للغرفة`,
+                    createdAt: serverTimestamp(),
+                    read: false
+                });
+
+                showToast('تم قبول الطلب بنجاح!');
+                loadRoomMembers();
+                
+            } catch (error) {
+                console.error("Error approving request:", error);
+                showToast('فشل في قبول الطلب', 'error');
+            }
+        };
+
+        // Reject join request
+        window.rejectJoinRequest = async function(requestId) {
+            try {
+                await updateDoc(doc(db, 'roomJoinRequests', requestId), {
+                    status: 'rejected',
+                    rejectedAt: serverTimestamp()
+                });
+
+                showToast('تم رفض الطلب');
+                
+            } catch (error) {
+                console.error("Error rejecting request:", error);
+                showToast('فشل في رفض الطلب', 'error');
+            }
+        };
+
+        // Check if current user is room owner and show badge
+        function checkAndShowJoinRequestsBadge() {
+            if (roomData && roomData.createdBy === currentUser?.uid) {
+                // Room owner - load join requests count
+                const q = query(
+                    collection(db, 'roomJoinRequests'),
+                    where('roomId', '==', roomId),
+                    where('status', '==', 'pending')
+                );
+                
+                onSnapshot(q, (snapshot) => {
+                    const count = snapshot.size;
+                    if (count > 0) {
+                        // Show notification badge on menu
+                        let badge = document.getElementById('joinRequestsBadge');
+                        if (!badge) {
+                            badge = document.createElement('span');
+                            badge.id = 'joinRequestsBadge';
+                            badge.style.cssText = 'position: absolute; top: -5px; right: -5px; background: red; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px;';
+                            document.querySelector('.chat-room-menu-btn').appendChild(badge);
+                        }
+                        badge.textContent = count;
+                    }
+                });
+            }
+        }
+
+        // Add close join requests modal on overlay click
+        document.getElementById('joinRequestsModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeJoinRequestsModal();
+            }
+        });
 
         // Share room
         window.shareRoom = function() {

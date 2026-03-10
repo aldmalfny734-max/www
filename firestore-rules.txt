@@ -2,79 +2,113 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // المستخدمين -所有人都可以读取
-    match /users/{userId} {
-      allow read: if true;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && request.auth.uid == userId;
+    // دالة للتحقق من تسجيل الدخول
+    function isSignedIn() {
+      return request.auth != null;
     }
     
-    // الأصدقاء - المستخدمون المسجلون يمكنهم القراءة والكتابة
+    // دالة للتحقق من أن المستخدم يعدل بياناته الخاصة
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // المستخدمين
+    match /users/{userId} {
+      allow read: if true; // الجميع يمكنه قراءة بيانات المستخدمين
+      allow create: if isSignedIn(); // يمكن لأي مستخدم مسجل إنشاء حساب
+      allow update: if isOwner(userId); // يمكن للمستخدم تعديل بياناته فقط
+      allow delete: if isOwner(userId); // يمكن للمستخدم حذف حسابه فقط
+    }
+    
+    // الأصدقاء
     match /friends/{friendId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null;
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn();
     }
     
     // طلبات الصداقة
     match /friendRequests/{requestId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null;
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      // يمكن للمستخدم تحديث/حذف طلباته فقط
+      allow update, delete: if isSignedIn() && 
+        (resource.data.fromUid == request.auth.uid || resource.data.toUid == request.auth.uid);
     }
     
-    // المحادثات الخاصة - يمكن للمستخدمين قراءة ومحادثة أصدقائهم
+    // المحادثات الخاصة
     match /chats/{chatId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isSignedIn();
       
       match /messages/{messageId} {
-        allow read: if request.auth != null;
-        allow create: if request.auth != null;
+        allow read: if isSignedIn();
+        allow create: if isSignedIn();
+        // يمكن فقط لحذف رسائله الخاصة أو مدير الغرفة
+        allow delete: if isSignedIn() && 
+          (resource.data.senderId == request.auth.uid || 
+           request.auth.uid == get(/databases/$(database)/documents/chatRooms/$(chatId.split('_')[0]).split('_')[0]).data.createdBy ||
+           request.auth.uid == get(/databases/$(database)/documents/chatRooms/$(chatId.split('_')[1]).split('_')[0]).data.createdBy);
       }
     }
     
     // غرف الدردشة
     match /chatRooms/{roomId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null;
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      // يمكن فقط لمالك الغرفة تحديث/حذفها
+      allow update, delete: if isSignedIn() && resource.data.createdBy == request.auth.uid;
       
       match /messages/{messageId} {
-        allow read: if request.auth != null;
-        allow create: if request.auth != null;
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() && 
+          (resource.data.createdBy in get(/databases/$(database)/documents/chatRooms/$(roomId)).data.members);
+        // يمكن لمالك الغرفة أو صاحب الرسالة حذفها
+        allow delete: if isSignedIn() && 
+          (resource.data.senderId == request.auth.uid || 
+           request.auth.uid == get(/databases/$(database)/documents/chatRooms/$(roomId)).data.createdBy);
       }
     }
     
     // طلبات الانضمام للغرف
     match /roomJoinRequests/{requestId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null;
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      // يمكن لمالك الغرفة أو صاحب الطلب تحديث/حذف الطلب
+      allow update, delete: if isSignedIn() && 
+        (resource.data.roomCreatedBy == request.auth.uid || resource.data.userId == request.auth.uid);
     }
     
     // الإشعارات
     match /notifications/{notificationId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null;
+      allow read: if isSignedIn() && resource.data.toUid == request.auth.uid;
+      allow create: if isSignedIn();
+      // يمكن للمستخدم حذف إشعاراته فقط
+      allow update, delete: if isSignedIn() && resource.data.toUid == request.auth.uid;
     }
     
     // المحظورات
     match /blockedUsers/{userId}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
     
-    // المنشورات والتعليقات
+    // المنشورات
     match /posts/{postId} {
       allow read: if true;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null;
+      allow create: if isSignedIn();
+      // يمكن لصاحب المنشور أو مالك الغرفة حذفه
+      allow update, delete: if isSignedIn() && 
+        (resource.data.userId == request.auth.uid || 
+         resource.data.createdBy == request.auth.uid);
       
       match /comments/{commentId} {
         allow read: if true;
-        allow create: if request.auth != null;
-        allow update, delete: if request.auth != null;
+        allow create: if isSignedIn();
+        // يمكن لصاحب التعليق أو المنشور حذفه
+        allow update, delete: if isSignedIn() && 
+          (resource.data.userId == request.auth.uid || 
+           get(/databases/$(database)/documents/posts/$(postId)).data.userId == request.auth.uid);
       }
     }
   }
 }
+
