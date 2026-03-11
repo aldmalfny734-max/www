@@ -1,0 +1,110 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // USERS COLLECTION
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // CHAT ROOMS COLLECTION
+    match /chatRooms/{roomId} {
+      allow read: if request.auth != null && (resource == null || resource.data.members.hasAny([request.auth.uid]));
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && resource.data.createdBy == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.createdBy == request.auth.uid;
+    }
+    
+    // CHAT ROOM MESSAGES
+    match /chatRooms/{roomId}/messages/{messageId} {
+      allow read: if request.auth != null && get(/databases/$(database)/documents/chatRooms/$(roomId)).data.members.hasAny([request.auth.uid]);
+      allow create: if request.auth != null && get(/databases/$(database)/documents/chatRooms/$(roomId)).data.members.hasAny([request.auth.uid]);
+      allow update, delete: if request.auth != null && (resource.data.senderId == request.auth.uid || get(/databases/$(database)/documents/chatRooms/$(roomId)).data.createdBy == request.auth.uid);
+    }
+    
+    // ROOM JOIN REQUESTS
+    match /roomJoinRequests/{requestId} {
+      allow read: if request.auth != null && get(/databases/$(database)/documents/chatRooms/$(resource.data.roomId)).data.createdBy == request.auth.uid;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && get(/databases/$(database)/documents/chatRooms/$(resource.data.roomId)).data.createdBy == request.auth.uid;
+      allow delete: if request.auth != null;
+    }
+    
+    // FRIENDS COLLECTION
+    match /friends/{friendId} {
+      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || resource.data.friendId == request.auth.uid);
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (resource.data.userId == request.auth.uid || resource.data.friendId == request.auth.uid);
+    }
+    
+    // NOTIFICATIONS COLLECTION
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    
+    // POSTS COLLECTION
+    match /posts/{postId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && resource.data.authorId == request.auth.uid;
+    }
+    
+    // POST COMMENTS
+    match /posts/{postId}/comments/{commentId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && resource.data.senderId == request.auth.uid;
+    }
+    
+    // POST LIKES
+    match /posts/{postId}/likes/{likeId} {
+      allow read: if request.auth != null;
+      allow create, delete: if request.auth != null;
+    }
+    
+    // PRIVATE CHATS COLLECTION
+    match /privateChats/{chatId} {
+      allow read: if request.auth != null && (resource == null || resource.data.participants.hasAny([request.auth.uid]));
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && resource.data.participants.hasAny([request.auth.uid]);
+      allow delete: if request.auth != null && resource.data.participants.hasAny([request.auth.uid]);
+    }
+    
+    // PRIVATE MESSAGES
+    match /privateChats/{chatId}/messages/{messageId} {
+      allow read: if request.auth != null && get(/databases/$(database)/documents/privateChats/$(chatId)).data.participants.hasAny([request.auth.uid]);
+      allow create: if request.auth != null && get(/databases/$(database)/documents/privateChats/$(chatId)).data.participants.hasAny([request.auth.uid]);
+      allow update, delete: if request.auth != null && resource.data.senderId == request.auth.uid;
+    }
+    
+    // USER SETTINGS
+    match /userSettings/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create, update, delete: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // CHATS COLLECTION
+    match /chats/{chatId} {
+      allow read: if request.auth != null && (resource == null || resource.data.participants.hasAny([request.auth.uid]));
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && resource.data.participants.hasAny([request.auth.uid]);
+      allow delete: if request.auth != null && resource.data.participants.hasAny([request.auth.uid]);
+    }
+    
+    // CHATS MESSAGES
+    match /chats/{chatId}/messages/{messageId} {
+      allow read: if request.auth != null && get(/databases/$(database)/documents/chats/$(chatId)).data.participants.hasAny([request.auth.uid]);
+      allow create: if request.auth != null && get(/databases/$(database)/documents/chats/$(chatId)).data.participants.hasAny([request.auth.uid]);
+      allow update, delete: if request.auth != null && resource.data.senderId == request.auth.uid;
+    }
+    
+  }
+}
+</parameter>
+</create_file>
+</minimax:tool_call>

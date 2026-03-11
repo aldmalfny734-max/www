@@ -81,7 +81,7 @@ service cloud.firestore {
     // ==================== PRIVATE CHATS COLLECTION ====================
     match /privateChats/{chatId} {
       allow read: if request.auth != null && 
-                   (resource.data.participants.hasAny([request.auth.uid]));
+                   (resource == null || resource.data.participants.hasAny([request.auth.uid]));
       allow create: if request.auth != null;
       allow update: if request.auth != null && 
                     resource.data.participants.hasAny([request.auth.uid]);
@@ -104,7 +104,7 @@ service cloud.firestore {
       allow create, update, delete: if request.auth != null && request.auth.uid == userId;
     }
     
-    // ==================== CHATS COLLECTION ====================
+    // ==================== CHATS COLLECTION (المحادثات الخاصة) ====================
     match /chats/{chatId} {
       allow read: if request.auth != null && 
                    (resource == null || resource.data.participants.hasAny([request.auth.uid]));
@@ -115,7 +115,7 @@ service cloud.firestore {
                     resource.data.participants.hasAny([request.auth.uid]);
     }
     
-    // ==================== CHATS MESSAGES SUB-COLLECTION ====================
+    // ==================== CHATS MESSAGES SUB-COLLECTION (الرسائل الخاصة) ====================
     match /chats/{chatId}/messages/{messageId} {
       allow read: if request.auth != null && 
                    get(/databases/$(database)/documents/chats/$(chatId)).data.participants.hasAny([request.auth.uid]);
@@ -126,3 +126,6 @@ service cloud.firestore {
     
   }
 }
+</parameter>
+</invoke>
+</minimax:tool_call>

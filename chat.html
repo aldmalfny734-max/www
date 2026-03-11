@@ -447,7 +447,7 @@
     
     <script src="app.js"></script>
     <script type="module">
-        import { getFirestore, collection, onSnapshot, query, orderBy, where, getDocs, getDoc, addDoc, serverTimestamp, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, orderBy, where, getDocs, getDoc, addDoc, serverTimestamp, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         
         const db = getFirestore(window.firebaseApps[0]);
@@ -613,7 +613,7 @@
             container.innerHTML = html;
         }
         
-        // Approve join request
+        // Approve join request - Fixed version using arrayUnion
         window.approveJoinRequest = async function(requestId, roomId, userId, userName) {
             try {
                 // Update request status
@@ -621,37 +621,35 @@
                     status: 'approved',
                     approvedAt: serverTimestamp()
                 });
-                
-                // Add user to room members
-                const roomDoc = await getDoc(doc(db, 'chatRooms', roomId));
-                if (roomDoc.exists()) {
-                    const roomData = roomDoc.data();
-                    let members = roomData.members || [];
-                    if (!members.includes(userId)) {
-                        members.push(userId);
-                        await updateDoc(doc(db, 'chatRooms', roomId), { members: members });
-                    }
-                }
-                
+
+                // Add user to room members using arrayUnion (proper way)
+                await updateDoc(doc(db, 'chatRooms', roomId), {
+                    members: arrayUnion(userId)
+                });
+
                 // Create notification for the user
+                const roomDoc = await getDoc(doc(db, 'chatRooms', roomId));
+                const roomName = roomDoc.exists() ? roomDoc.data().name : 'غرفة';
+
                 await addDoc(collection(db, 'notifications'), {
                     toUid: userId,
                     fromUid: currentUser.uid,
                     fromName: currentUserData?.fullName || 'المستخدم',
                     type: 'room_join_approved',
                     roomId: roomId,
-                    message: `تم قبول طلب انضمامك للغرفة`,
+                    roomName: roomName,
+                    message: `تم قبول طلب انضمامك للغرفة "${roomName}"`,
                     createdAt: serverTimestamp(),
                     read: false
                 });
-                
+
                 showToast('تم قبول الطلب بنجاح!');
                 loadOwnerJoinRequests();
                 loadJoinedRooms();
                 
             } catch (error) {
                 console.error("Error approving request:", error);
-                showToast('فشل في قبول الطلب', 'error');
+                showToast('فشل في قبول الطلب: ' + error.message, 'error');
             }
         };
         
@@ -1091,6 +1089,39 @@
             
             try {
                 const chatId = [currentUser.uid, currentChatPartner.uid].sort().join('_');
+                
+                // إنشاء المستند الأصلي للمحادثة إذا لم يكن موجوداً
+                const chatDocRef = doc(db, 'chats', chatId);
+                const chatDocSnap = await getDoc(chatDocRef);
+                
+                if (!chatDocSnap.exists()) {
+                    // إنشاء محادثة جديدة مع بيانات المشاركة كاملة
+                    await setDoc(chatDocRef, {
+                        participants: [currentUser.uid, currentChatPartner.uid],
+                        participantDetails: {
+                            [currentUser.uid]: {
+                                name: currentUserData?.fullName || currentUser.displayName || 'مستخدم',
+                                avatar: currentUserData?.avatar || null
+                            },
+                            [currentChatPartner.uid]: {
+                                name: currentChatPartner.name || 'مستخدم',
+                                avatar: currentChatPartner.avatar || null
+                            }
+                        },
+                        createdAt: serverTimestamp(),
+                        lastMessage: text,
+                        lastMessageTime: serverTimestamp(),
+                        lastMessageSender: currentUser.uid,
+                        type: 'private'
+                    });
+                } else {
+                    // تحديث المحادثة الموجودة
+                    await updateDoc(chatDocRef, {
+                        lastMessage: text,
+                        lastMessageTime: serverTimestamp(),
+                        lastMessageSender: currentUser.uid
+                    });
+                }
                 
                 await addDoc(collection(db, 'chats', chatId, 'messages'), {
                     text: text,

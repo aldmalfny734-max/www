@@ -776,14 +776,33 @@
                 const chatDocSnap = await getDoc(chatDocRef);
                 
                 if (!chatDocSnap.exists()) {
-                    // إنشاء محادثة جديدة
+                    // إنشاء محادثة جديدة مع بيانات المشاركة كاملة
                     await setDoc(chatDocRef, {
                         participants: [currentUser.uid, friendUid],
+                        participantDetails: {
+                            [currentUser.uid]: {
+                                name: currentUserData?.fullName || currentUser.displayName || 'مستخدم',
+                                avatar: currentUserData?.avatar || null
+                            },
+                            [friendUid]: {
+                                name: friendName,
+                                avatar: friendAvatar || null
+                            }
+                        },
                         createdAt: serverTimestamp(),
                         lastMessage: text,
-                        lastMessageTime: serverTimestamp()
+                        lastMessageTime: serverTimestamp(),
+                        lastMessageSender: currentUser.uid,
+                        type: 'private'
                     });
                     console.log('✅ تم إنشاء المحادثة');
+                } else {
+                    // تحديث المحادثة الموجودة
+                    await updateDoc(chatDocRef, {
+                        lastMessage: text,
+                        lastMessageTime: serverTimestamp(),
+                        lastMessageSender: currentUser.uid
+                    });
                 }
 
                 // إرسال الرسالة
@@ -1003,9 +1022,27 @@
                 if (!chatDocSnap.exists()) {
                     await setDoc(chatDocRef, {
                         participants: [currentUser.uid, friendUid],
+                        participantDetails: {
+                            [currentUser.uid]: {
+                                name: currentUserData?.fullName || currentUser.displayName || 'مستخدم',
+                                avatar: currentUserData?.avatar || null
+                            },
+                            [friendUid]: {
+                                name: friendName,
+                                avatar: friendAvatar || null
+                            }
+                        },
                         createdAt: serverTimestamp(),
                         lastMessage: '📷 صورة',
-                        lastMessageTime: serverTimestamp()
+                        lastMessageTime: serverTimestamp(),
+                        lastMessageSender: currentUser.uid,
+                        type: 'private'
+                    });
+                } else {
+                    await updateDoc(chatDocRef, {
+                        lastMessage: '📷 صورة',
+                        lastMessageTime: serverTimestamp(),
+                        lastMessageSender: currentUser.uid
                     });
                 }
                 

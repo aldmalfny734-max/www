@@ -1,0 +1,413 @@
+================================================================================
+                    هيكل قاعدة بيانات Firebase Firestore
+                         لنظام الدردشة والتواصل الاجتماعي
+================================================================================
+
+ملاحظة: هذا الملف يوضح هيكل قاعدة البيانات فقط. Firestore هو قاعدة بيانات
+NoSQL ولا يحتاج لإنشاء Collections يدوياً - يتم إنشاؤها تلقائياً عند إضافة
+البيانات الأولى.
+
+================================================================================
+                            1. مجموعة المستخدمين (users)
+================================================================================
+
+المسار: /users/{userId}
+
+الحقول:
+- uid: string (معرف المستخدم الفريد من Firebase Auth)
+- fullName: string (الاسم الكامل)
+- username: string (اسم المستخدم الفريد)
+- authEmail: string (البريد الإلكتروني للمصادقة - مخفي)
+- password: string (كلمة المرور - ملاحظة: غير آمن للاستخدام في الإنتاج)
+- birthDate: string (تاريخ الميلاد)
+- country: string (الدولة)
+- countryCode: string (كود الدولة مثل: SA, AE, KW)
+- phoneCode: string (كود الهاتف مثل: +966)
+- phoneNumber: string (رقم الهاتف)
+- avatar: string (رابط صورة الملف الشخصي)
+- bio: string (النبذة الشخصية)
+- createdAt: timestamp (تاريخ إنشاء الحساب)
+- isActive: boolean (هل الحساب نشط)
+- isBlocked: boolean (هل الحساب محظور)
+- lastLogin: timestamp (آخر تسجيل دخول)
+- theme: string (السمة المختارة: light أو dark)
+- notificationsEnabled: boolean (تفعيل الإشعارات)
+
+مثال على البيانات:
+{
+  "uid": "abc123xyz",
+  "fullName": "محمد أحمد",
+  "username": "mohammed_ahmed",
+  "authEmail": "mohammed_ahmed@app.local",
+  "birthDate": "1995-05-15",
+  "country": "المملكة العربية السعودية",
+  "countryCode": "SA",
+  "phoneCode": "+966",
+  "phoneNumber": "501234567",
+  "avatar": "https://firebasestorage.appspot.com/avatars/abc123.jpg",
+  "bio": "مرحباً بك في ملفي الشخصي",
+  "createdAt": "2024-01-15T10:30:00Z",
+  "isActive": true,
+  "isBlocked": false,
+  "lastLogin": "2024-01-20T14:45:00Z",
+  "theme": "light",
+  "notificationsEnabled": true
+}
+
+================================================================================
+                        2. مجموعة غرف الدردشة (chatRooms)
+================================================================================
+
+المسار: /chatRooms/{roomId}
+
+الحقول:
+- id: string (معرف الغرفة)
+- name: string (اسم الغرفة)
+- description: string (وصف الغرفة)
+- image: string (رابط صورة الغرفة)
+- type: string (نوع الغرفة: "public" أو "private")
+- createdBy: string (معرف منشئ الغرفة)
+- createdAt: timestamp (تاريخ إنشاء الغرفة)
+- members: array (مصفوفة معرفات الأعضاء)
+- maxMembers: number (الحد الأقصى للأعضاء)
+- isActive: boolean (هل الغرفة نشطة)
+- lastMessage: string (آخر رسالة)
+- lastMessageTime: timestamp (وقت آخر رسالة)
+
+مثال على البيانات:
+{
+  "id": "room_abc123",
+  "name": "غرفة الدردشة العامة",
+  "description": "غرفة للدردشة والتواصل",
+  "image": "https://firebasestorage.appspot.com/rooms/room_abc123.jpg",
+  "type": "public",
+  "createdBy": "user123",
+  "createdAt": "2024-01-10T08:00:00Z",
+  "members": ["user123", "user456", "user789"],
+  "maxMembers": 100,
+  "isActive": true,
+  "lastMessage": "مرحباً everyone!",
+  "lastMessageTime": "2024-01-20T15:30:00Z"
+}
+
+================================================================================
+                    3. الرسائل داخل الغرف (messages)
+================================================================================
+
+المسار: /chatRooms/{roomId}/messages/{messageId}
+
+الحقول:
+- id: string (معرف الرسالة)
+- text: string (نص الرسالة)
+- senderId: string (معرف المرسل)
+- senderName: string (اسم المرسل)
+- senderAvatar: string (صورة المرسل)
+- createdAt: timestamp (تاريخ إرسال الرسالة)
+- editedAt: timestamp (تاريخ تعديل الرسالة)
+- isEdited: boolean (هل تم تعديل الرسالة)
+- likes: array (مصفوفة معرفات المستخدمين الذين أعجبوا)
+- comments: array (مصفوفة التعليقات)
+  - id: string (معرف التعليق)
+  - text: string (نص التعليق)
+  - senderId: string (معرف مُرسل التعليق)
+  - senderName: string (اسم مُرسل التعليق)
+  - senderAvatar: string (صورة مُرسل التعليق)
+  - createdAt: timestamp (تاريخ التعليق)
+  - likes: array (إعجابات التعليق)
+  - replies: array (ردود على التعليق)
+  - isEdited: boolean (هل تم تعديل التعليق)
+
+مثال على البيانات:
+{
+  "id": "msg_xyz789",
+  "text": "مرحباً everyone!",
+  "senderId": "user123",
+  "senderName": "محمد أحمد",
+  "senderAvatar": "https://firebasestorage.appspot.com/avatars/user123.jpg",
+  "createdAt": "2024-01-20T15:30:00Z",
+  "isEdited": false,
+  "likes": ["user456", "user789"],
+  "comments": [
+    {
+      "id": "comment_001",
+      "text": "مرحباً محمد!",
+      "senderId": "user456",
+      "senderName": "أحمد علي",
+      "senderAvatar": "https://firebasestorage.appspot.com/avatars/user456.jpg",
+      "createdAt": "2024-01-20T15:35:00Z",
+      "likes": [],
+      "replies": [],
+      "isEdited": false
+    }
+  ]
+}
+
+================================================================================
+                    4. طلبات الانضمام للغرف (roomJoinRequests)
+================================================================================
+
+المسار: /roomJoinRequests/{requestId}
+
+الحقول:
+- id: string (معرف الطلب)
+- roomId: string (معرف الغرفة)
+- roomName: string (اسم الغرفة)
+- userId: string (معرف المستخدم الطالب)
+- userName: string (اسم المستخدم)
+- userAvatar: string (صورة المستخدم)
+- status: string (حالة الطلب: "pending" أو "approved" أو "rejected")
+- createdAt: timestamp (تاريخ الطلب)
+- processedAt: timestamp (تاريخ معالجة الطلب)
+- processedBy: string (معرف من處理 الطلب)
+
+مثال على البيانات:
+{
+  "id": "request_001",
+  "roomId": "room_abc123",
+  "roomName": "غرفة الدردشة العامة",
+  "userId": "user789",
+  "userName": "خالد محمد",
+  "userAvatar": "https://firebasestorage.appspot.com/avatars/user789.jpg",
+  "status": "pending",
+  "createdAt": "2024-01-20T10:00:00Z",
+  "processedAt": null,
+  "processedBy": null
+}
+
+================================================================================
+                        5. مجموعة الأصدقاء (friends)
+================================================================================
+
+المسار: /friends/{friendId}
+
+الحقول:
+- id: string (معرف العلاقة)
+- userId: string (معرف المستخدم الأول)
+- friendId: string (معرف المستخدم الثاني)
+- status: string (حالة العلاقة: "pending" أو "accepted" أو "blocked")
+- createdAt: timestamp (تاريخ إرسال طلب الصداقة)
+- acceptedAt: timestamp (تاريخ قبول الطلب)
+
+مثال على البيانات:
+{
+  "id": "friend_001",
+  "userId": "user123",
+  "friendId": "user456",
+  "status": "accepted",
+  "createdAt": "2024-01-15T12:00:00Z",
+  "acceptedAt": "2024-01-16T08:30:00Z"
+}
+
+================================================================================
+                    6. مجموعة الإشعارات (notifications)
+================================================================================
+
+المسار: /notifications/{notificationId}
+
+الحقول:
+- id: string (معرف الإشعار)
+- userId: string (معرف المستخدم المستلم)
+- type: string (نوع الإشعار)
+  - "friend_request" (طلب صديق)
+  - "friend_accepted" (قبول صديق)
+  - "room_invite" (دعوة غرفة)
+  - "room_message" (رسالة في غرفة)
+  - "post_like" (إعجاب بمنشور)
+  - "post_comment" (تعليق على منشور)
+  - "mention" (إشارة)
+- title: string (عنوان الإشعار)
+- body: string (محتوى الإشعار)
+- data: map (بيانات إضافية)
+- fromUserId: string (معرف المستخدم المُرسل)
+- fromUserName: string (اسم المستخدم المُرسل)
+- fromUserAvatar: string (صورة المستخدم المُرسل)
+- isRead: boolean (هل تمت قراءة الإشعار)
+- createdAt: timestamp (تاريخ الإشعار)
+
+مثال على البيانات:
+{
+  "id": "notif_001",
+  "userId": "user123",
+  "type": "friend_request",
+  "title": "طلب صديق جديد",
+  "body": "أرسل لك أحمد علي طلب صداقة",
+  "data": {
+    "friendId": "user456"
+  },
+  "fromUserId": "user456",
+  "fromUserName": "أحمد علي",
+  "fromUserAvatar": "https://firebasestorage.appspot.com/avatars/user456.jpg",
+  "isRead": false,
+  "createdAt": "2024-01-20T14:00:00Z"
+}
+
+================================================================================
+                        7. مجموعة المنشورات (posts)
+================================================================================
+
+المسار: /posts/{postId}
+
+الحقول:
+- id: string (معرف المنشور)
+- authorId: string (معرف الكاتب)
+- authorName: string (اسم الكاتب)
+- authorAvatar: string (صورة الكاتب)
+- content: string (محتوى المنشور)
+- image: string (صورة المنشور)
+- likesCount: number (عدد الإعجابات)
+- commentsCount: number (عدد التعليقات)
+- sharesCount: number (عدد المشاركات)
+- isEdited: boolean (هل تم تعديل المنشور)
+- createdAt: timestamp (تاريخ النشر)
+- editedAt: timestamp (تاريخ التعديل)
+
+مثال على البيانات:
+{
+  "id": "post_001",
+  "authorId": "user123",
+  "authorName": "محمد أحمد",
+  "authorAvatar": "https://firebasestorage.appspot.com/avatars/user123.jpg",
+  "content": "منشور تجريبي جديد",
+  "image": "https://firebasestorage.appspot.com/posts/post_001.jpg",
+  "likesCount": 15,
+  "commentsCount": 5,
+  "sharesCount": 2,
+  "isEdited": false,
+  "createdAt": "2024-01-20T10:00:00Z",
+  "editedAt": null
+}
+
+================================================================================
+                    8. التعليقات على المنشورات (comments)
+================================================================================
+
+المسار: /posts/{postId}/comments/{commentId}
+
+الحقول:
+- id: string (معرف التعليق)
+- postId: string (معرف المنشور)
+- senderId: string (معرف المُرسل)
+- senderName: string (اسم المُرسل)
+- senderAvatar: string (صورة المُرسل)
+- content: string (محتوى التعليق)
+- likesCount: number (عدد الإعجابات)
+- createdAt: timestamp (تاريخ التعليق)
+- isEdited: boolean (هل تم تعديل التعليق)
+
+================================================================================
+                    9. الإعجابات بالمنشورات (likes)
+================================================================================
+
+المسار: /posts/{postId}/likes/{likeId}
+
+الحقول:
+- id: string (معرف الإعجاب)
+- postId: string (معرف المنشور)
+- userId: string (معرف المستخدم)
+- userName: string (اسم المستخدم)
+- createdAt: timestamp (تاريخ الإعجاب)
+
+================================================================================
+                    10. المحادثات الخاصة (privateChats)
+================================================================================
+
+المسار: /privateChats/{chatId}
+
+الحقول:
+- id: string (معرف المحادثة)
+- participants: array (مصفوفة معرفات المشاركين)
+- participantNames: map (أسماء المشاركين)
+- participantAvatars: map (صور المشاركين)
+- lastMessage: string (آخر رسالة)
+- lastMessageTime: timestamp (وقت آخر رسالة)
+- lastMessageSender: string (مرسل آخر رسالة)
+- createdAt: timestamp (تاريخ إنشاء المحادثة)
+- updatedAt: timestamp (تاريخ آخر تحديث)
+
+مثال على البيانات:
+{
+  "id": "chat_001",
+  "participants": ["user123", "user456"],
+  "participantNames": {
+    "user123": "محمد أحمد",
+    "user456": "أحمد علي"
+  },
+  "participantAvatars": {
+    "user123": "https://firebasestorage.appspot.com/avatars/user123.jpg",
+    "user456": "https://firebasestorage.appspot.com/avatars/user456.jpg"
+  },
+  "lastMessage": "مرحباً! كيف حالك؟",
+  "lastMessageTime": "2024-01-20T15:30:00Z",
+  "lastMessageSender": "user123",
+  "createdAt": "2024-01-15T10:00:00Z",
+  "updatedAt": "2024-01-20T15:30:00Z"
+}
+
+================================================================================
+                    11. الرسائل الخاصة (privateMessages)
+================================================================================
+
+المسار: /privateChats/{chatId}/messages/{messageId}
+
+الحقول:
+- id: string (معرف الرسالة)
+- chatId: string (معرف المحادثة)
+- senderId: string (معرف المرسل)
+- senderName: string (اسم المرسل)
+- senderAvatar: string (صورة المرسل)
+- text: string (نص الرسالة)
+- isRead: boolean (هل تمت قراءة الرسالة)
+- createdAt: timestamp (تاريخ الإرسال)
+
+مثال على البيانات:
+{
+  "id": "pmsg_001",
+  "chatId": "chat_001",
+  "senderId": "user123",
+  "senderName": "محمد أحمد",
+  "senderAvatar": "https://firebasestorage.appspot.com/avatars/user123.jpg",
+  "text": "مرحباً! كيف حالك؟",
+  "isRead": true,
+  "createdAt": "2024-01-20T15:30:00Z"
+}
+
+================================================================================
+                    12. إعدادات المستخدمين (userSettings)
+================================================================================
+
+المسار: /userSettings/{userId}
+
+الحقول:
+- userId: string (معرف المستخدم)
+- theme: string (السمة: light أو dark)
+- notificationsEnabled: boolean (تفعيل الإشعارات)
+- soundEnabled: boolean (تفعيل الصوت)
+- vibrationEnabled: boolean (تفعيل الاهتزاز)
+- language: string (اللغة)
+- privacy: map (الإعدادات الخصوصية)
+  - showOnlineStatus: boolean
+  - showLastSeen: boolean
+  - showProfilePhoto: boolean
+- blockedUsers: array (قائمة المستخدمين المحظورين)
+- mutedRooms: array (الغرف المكتومة)
+
+================================================================================
+                            كيفية النشر في Firebase
+================================================================================
+
+1. افتح Firebase Console: https://console.firebase.google.com/
+
+2. اختر مشروعك: chat-94032
+
+3. انتقل إلى Firestore Database
+
+4. انقر على "قواعد" (Rules)
+
+5. انسخ القواعد من ملف firestore-rules.txt والصقها
+
+6. انقر على "نشر" (Publish)
+
+ملاحظة: لا تحتاج لإنشاء Collections يدوياً - ستُنشأ تلقائياً عند استخدام
+التطبيق وإضافة البيانات الأولى.
+
+================================================================================
